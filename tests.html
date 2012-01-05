@@ -32,10 +32,20 @@
         'require',
         'domReady!'
     ]).then(function (require) {
-        require(["api/list", "api/dict"], function () {
+        QUnit.init({
+            autostart: false
+        })
+
+        require([
+            "utils/oop",
+            "api/list",
+            "api/dict"
+        ], function () {
             for (var i=0; i<arguments.length; i++) {
                 arguments[i].tests();
             }
+
+            QUnit.start();
         });
     });
     </script>
