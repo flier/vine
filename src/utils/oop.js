@@ -48,10 +48,10 @@ exports.tests = function () {
 
         var c = new Cat();
 
-        equal(c.parent, Animal.prototype);
+        equal(c.parent, Animal.prototype, "parent == super.prototype");
 
-        equal(c.name(), "cat");
-        equal(c.hello(), "hello from cat");
+        equal(c.name(), "cat", "super.method");
+        equal(c.hello(), "hello from cat", "extend method");
     });
 };
 

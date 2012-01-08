@@ -70,6 +70,9 @@ Array.extend({
         this.splice(0, start);
 
         return this;
+    },
+    clone: function () {
+        return this.slice(0);
     }
 });
 
@@ -79,22 +82,24 @@ exports.tests = function () {
     test("basic list operation", function () {
         var l = [1, 2, 3];
 
-        ok(l.range(-100, 100).equals([1, 2, 3]));
-        ok(l.range(0, 0).equals([1]));
-        ok(l.range(-3, 2).equals([1, 2, 3]));
-        ok(l.range(5, 10).equals([]));
+        ok(l.range(-100, 100).equals([1, 2, 3]), "range(-100, 100)");
+        ok(l.range(0, 0).equals([1]), "range(0, 0)");
+        ok(l.range(-3, 2).equals([1, 2, 3]), "range(-3, 2)");
+        ok(l.range(5, 10).equals([]), "range(5, 10)");
 
-        ok([1, 2, 1, 2, 1, 2, 1].remove(2, 1).equals([2, 2, 1, 2, 1]));
-        ok([1, 2, 1, 2, 1, 2, 1].remove(-2, 1).equals([1, 2, 1, 2, 2]));
-        ok([1, 2, 1, 2, 1, 2, 1].remove(0, 1).equals([2, 2, 2]));
+        ok([1, 2, 1, 2, 1, 2, 1].remove(2, 1).equals([2, 2, 1, 2, 1]), "remove(2, 1)");
+        ok([1, 2, 1, 2, 1, 2, 1].remove(-2, 1).equals([1, 2, 1, 2, 2]), "remove(-2, 1)");
+        ok([1, 2, 1, 2, 1, 2, 1].remove(0, 1).equals([2, 2, 2]), "remove(0, 1)");
 
-        ok([1, 2, 3, 4].trim(1, -1).equals([2, 3]));
+        ok([1, 2, 3, 4].trim(1, -1).equals([2, 3]), "trim(1, -1)");
 
-        equals(l.find(3), 2);
-        equals(l.find(4), -1);
+        equals(l.find(3), 2, "find(3)");
+        equals(l.find(4), -1, "!find(4)");
 
-        equals(l.insert(1, 4, 5), 5);
-        ok(l.equals([1, 4, 5, 2, 3]));
+        equals(l.insert(1, 4, 5), 5, "insert(1, 4, 5)");
+        ok(l.equals([1, 4, 5, 2, 3]), "equals([1, ...])");
+
+        ok(l.clone().equals(l), "clone()");
     });
 };
 

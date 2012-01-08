@@ -5,13 +5,13 @@ var Set = function (items) {
 };
 
 Set.extend({
-    length: function() {
+    length: function () {
         return this.items.length;
     },
-    members: function() {
+    members: function () {
         return this.items;
     },
-    add: function() {
+    add: function () {
         var added = 0;
 
         for (var i=0; i<arguments.length; i++) {
@@ -23,7 +23,7 @@ Set.extend({
 
         return added;
     },
-    remove: function() {
+    remove: function () {
         var removed = 0;
 
         for (var i=0; i<arguments.length; i++) {
@@ -38,7 +38,7 @@ Set.extend({
 
         return removed;
     },
-    contains: function() {
+    contains: function () {
         for (var i=0; i<arguments.length; i++) {
             if (this.items.find(arguments[i]) < 0) {
                 return false;
@@ -46,12 +46,12 @@ Set.extend({
         }
         return true;
     },
-    pop: function() {
+    pop: function () {
         var idx = Math.floor(this.items.length * Math.random());
 
         return this.items.splice(idx, 1)[0];
     },
-    random: function() {
+    random: function () {
         var idx = Math.floor(this.items.length * Math.random());
 
         return this.items[idx];
@@ -64,20 +64,20 @@ exports.tests = function () {
     test("basic set operation", function () {
         var s = new Set();
 
-        equals(s.add(1, 2, 3, 3), 3);
-        equals(s.length(), 3);
-        ok(s.members().equals([1, 2, 3]));
-        ok(s.contains(3));
-        ok(!s.contains(4));
+        equals(s.add(1, 2, 3, 3), 3, "add(1, ...)");
+        equals(s.length(), 3, "length()");
+        ok(s.members().equals([1, 2, 3]), "members()");
+        ok(s.contains(3), "contains(3)");
+        ok(!s.contains(4), "!contains(4)");
 
-        equals(s.add(4, 5), 2);
-        equals(s.remove(4, 5), 2);
-        equals(s.length(), 3);
-        equals(s.remove(4, 5), 0);
+        equals(s.add(4, 5), 2, "add(4, 5)");
+        equals(s.remove(4, 5), 2, "remove(4, 5)");
+        equals(s.length(), 3, "length()");
+        equals(s.remove(4, 5), 0, "!remove(4, 5)");
 
-        ok(s.contains(s.random()));
-        ok(!s.contains(s.pop()));
-        equals(s.length(), 2);
+        ok(s.contains(s.random()), "random()");
+        ok(!s.contains(s.pop()), "pop()");
+        equals(s.length(), 2, "length()");
     });
 };
 
