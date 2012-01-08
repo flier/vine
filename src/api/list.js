@@ -19,7 +19,7 @@ List.extend({
     equals: function (list) {
         if (this.length != list.length) return false;
 
-        for (var i in this) {
+        for (var i=0; i<this.length; i++) {
             if (this[i] != list[i]) return false;
         }
 
@@ -81,7 +81,7 @@ exports.tests = function () {
 
         equal(l.lpush(3, 2, 1), 3);
 
-        equal(new List([3, 2, 1]).equals(l.range(-100, 100)));
+        ok(new List([3, 2, 1]).equals(l.range(-100, 100)));
     });
 };
 
