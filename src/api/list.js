@@ -1,21 +1,11 @@
 define(["require", "exports", "utils/oop"], function (require, exports) {
 
-var List = function (array) {
-    array = array || [];
+Array.extend({
+    range: function (start, stop) {
+        if (stop < 0) stop += this.length;
 
-    for (var i in array) {
-        this.push(array[i]);
-    }
-
-    this.lpush = this.unshift;
-    this.rpush = this.push;
-    this.lpop = this.shift;
-    this.rpop = this.pop;
-    this.range = this.slice;
-};
-
-List.inherit(Array);
-List.extend({
+        return this.slice(start, stop+1);
+    },
     equals: function (list) {
         if (this.length != list.length) return false;
 
@@ -25,63 +15,86 @@ List.extend({
 
         return true;
     },
+    find: function (value) {
+        for (var i=0; i<this.length; i++) {
+            if (this[i] == value) return i;
+        }
+        return -1;
+    },
+    insert: function () {
+        var args = Array.prototype.slice.call(arguments);
+
+        args.splice(1, 0, 0);
+
+        Array.prototype.splice.apply(this, args);
+
+        return this.length;
+    },
     remove: function (count, value) {
         var found = 0;
 
         if (count > 0) {
             var i = 0;
 
-            while (count > found && i < this.array.length) {
-                if (this.array[i] == value) {
+            while (count > found && i < this.length) {
+                if (this[i] == value) {
                     found++;
-                    this.array.splice(i);
+                    this.splice(i, 1);
                 } else {
                     i++;
                 }
             }
         } else if (count < 0) {
-            for (var i = this.array.length-1; count <= -found && i >= 0; i--) {
-                if (this.array[i] == value) {
+            for (var i = this.length-1; count < -found && i >= 0; i--) {
+                if (this[i] == value) {
                     found++;
-                    this.array.splice(i);
+                    this.splice(i, 1);
                 }
             }
         } else {
-            for (var i=this.array.length-1; i>= 0; i--) {
-                if (this.array[i] == value) {
+            for (var i=this.length-1; i>= 0; i--) {
+                if (this[i] == value) {
                     found++;
-                    this.array.splice(i);
+                    this.splice(i, 1);
                 }
             }
         }
 
-        return found;
+        return this;
+    },
+    trim: function (start, stop) {
+        if (start < 0) start += this.length;
+        if (stop < 0) stop += this.length;
+
+        this.splice(stop);
+        this.splice(0, start);
+
+        return this;
     }
 });
 
-exports.List = List;
 exports.tests = function () {
     module("List API");
 
     test("basic list operation", function () {
-        var l = new List();
+        var l = [1, 2, 3];
 
-        equal(l.length, 0);
+        ok(l.range(-100, 100).equals([1, 2, 3]));
+        ok(l.range(0, 0).equals([1]));
+        ok(l.range(-3, 2).equals([1, 2, 3]));
+        ok(l.range(5, 10).equals([]));
 
-        equal(l.rpush('hello'), 1);
-        equal(l.rpush('world'), 2);
+        ok([1, 2, 1, 2, 1, 2, 1].remove(2, 1).equals([2, 2, 1, 2, 1]));
+        ok([1, 2, 1, 2, 1, 2, 1].remove(-2, 1).equals([1, 2, 1, 2, 2]));
+        ok([1, 2, 1, 2, 1, 2, 1].remove(0, 1).equals([2, 2, 2]));
 
-        equal(l.length, 2);
+        ok([1, 2, 3, 4].trim(1, -1).equals([2, 3]));
 
-        equal(l.lpop(), 'hello');
+        equals(l.find(3), 2);
+        equals(l.find(4), -1);
 
-        equal(l.length, 1);
-
-        equal(l.rpop(), 'world');
-
-        equal(l.lpush(3, 2, 1), 3);
-
-        ok(new List([3, 2, 1]).equals(l.range(-100, 100)));
+        equals(l.insert(1, 4, 5), 5);
+        ok(l.equals([1, 4, 5, 2, 3]));
     });
 };
 
