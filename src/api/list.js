@@ -73,6 +73,13 @@ Array.extend({
     },
     clone: function () {
         return this.slice(0);
+    },
+    each: function (callback /* (index, value) */) {
+        for (var i=0; i<this.length; i++) {
+            var ret = callback(i, this[i])
+
+            if (ret) return ret;
+        }
     }
 });
 
@@ -100,6 +107,14 @@ exports.tests = function () {
         ok(l.equals([1, 4, 5, 2, 3]), "equals([1, ...])");
 
         ok(l.clone().equals(l), "clone()");
+
+        var sum = 0;
+
+        [1, 2, 3].each(function (idx, value) {
+            sum += value;
+        });
+
+        equals(sum, 6, "each()");
     });
 };
 
