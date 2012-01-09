@@ -21,7 +21,7 @@ Array.extend({
         }
         return -1;
     },
-    insert: function () {
+    insert: function (/* value, value, ... */) {
         var args = Array.prototype.slice.call(arguments);
 
         args.splice(1, 0, 0);
