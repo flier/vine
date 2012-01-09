@@ -51,15 +51,15 @@ exports.tests = function () {
             b: 2
         });
 
-        ok(d.contains('a'));
-        equals(d.a, 1);
+        ok(d.contains('a'), "contains()");
+        equals(d.a, 1, "get()");
 
-        ok(d.keys().equals(["b", "a"]));
-        ok(d.values().equals([2, 1]));
+        ok(d.keys().equals(["b", "a"]), "keys()");
+        ok(d.values().equals([2, 1]), "values()");
 
-        equals(d.length(), 2);
+        equals(d.length(), 2, "length()");
         d.clear();
-        equals(d.length(), 0);
+        equals(d.length(), 0, "clear()");
     });
 };
 

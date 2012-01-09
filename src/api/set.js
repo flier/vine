@@ -158,16 +158,16 @@ exports.tests = function () {
     });
 
     test("interop set operation", function () {
-        ok(new Set([1, 2, 3, 4]).diff([3], [1, 3, 5]).members().equals([2, 4, 5]));
-        ok(new Set([1, 2, 3, 4]).inter([3], [1, 3, 5]).members().equals([3]));
-        ok(new Set([1, 2, 3, 4]).union([3], [1, 3, 5]).members().equals([1, 2, 3, 4, 5]));
+        ok(new Set([1, 2, 3, 4]).diff([3], [1, 3, 5]).members().equals([2, 4, 5]), "diff()");
+        ok(new Set([1, 2, 3, 4]).inter([3], [1, 3, 5]).members().equals([3]), "inter");
+        ok(new Set([1, 2, 3, 4]).union([3], [1, 3, 5]).members().equals([1, 2, 3, 4, 5]), "union");
 
         var s1 = new Set([1, 2]), s2 = new Set([3]);
 
-        equals(s1.move(s2, 2, 3), 1);
-        ok(s1.members().equals([1]));
-        ok(s2.members().equals([3, 2]));
-        equals(s1.move(s2, 4), 0);
+        equals(s1.move(s2, 2, 3), 1, "move");
+        ok(s1.members().equals([1]), "move from");
+        ok(s2.members().equals([3, 2]), "move to");
+        equals(s1.move(s2, 4), 0, "move nonexists");
     });
 };
 
