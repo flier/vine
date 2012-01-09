@@ -28,6 +28,16 @@ Dict.inherit(Object).extend({
         }
 
         return values;
+    },
+    length: function () {
+        return Object.getOwnPropertyNames(this).length;
+    },
+    clear: function () {
+        var props = Object.getOwnPropertyNames(this);
+
+        for (var i=0; i<props.length; i++) {
+            delete this[props[i]];
+        }
     }
 });
 
@@ -46,6 +56,10 @@ exports.tests = function () {
 
         ok(d.keys().equals(["b", "a"]));
         ok(d.values().equals([2, 1]));
+
+        equals(d.length(), 2);
+        d.clear();
+        equals(d.length(), 0);
     });
 };
 
