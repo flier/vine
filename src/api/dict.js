@@ -1,12 +1,52 @@
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "api/list", "utils/oop"], function (require, exports) {
 
-var Dictionary = function () {
+var Dict = function (obj) {
+    obj = obj || {};
 
+    var props = Object.getOwnPropertyNames(obj);
+
+    for (var i=0; i<props.length; i++) {
+        var prop = props[i];
+
+        this[prop] = obj[prop];
+    }
 };
 
-exports.Dictionary = Dictionary;
+Dict.inherit(Object).extend({
+    contains: function (prop) {
+        return typeof(this[prop]) !== 'undefined';
+    },
+    keys: function () {
+        return Object.getOwnPropertyNames(this);
+    },
+    values: function () {
+        var props = Object.getOwnPropertyNames(this);
+        var values = [];
+
+        for (var i=0; i<props.length; i++) {
+            values.push(this[props[i]]);
+        }
+
+        return values;
+    }
+});
+
+exports.Dict = Dict;
 exports.tests = function () {
     module("Dictionary API");
+
+    test("basic dict operation", function () {
+        var d = new Dict({
+            a: 1,
+            b: 2
+        });
+
+        ok(d.contains('a'));
+        equals(d.a, 1);
+
+        ok(d.keys().equals(["b", "a"]));
+        ok(d.values().equals([2, 1]));
+    });
 };
 
 });
