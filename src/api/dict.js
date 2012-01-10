@@ -54,8 +54,8 @@ exports.tests = function () {
         ok(d.contains('a'), "contains()");
         equals(d.a, 1, "get()");
 
-        ok(d.keys().equals(["b", "a"]), "keys()");
-        ok(d.values().equals([2, 1]), "values()");
+        ok(d.keys().sort().equals(["a", "b"]), "keys()");
+        ok(d.values().sort().equals([1, 2]), "values()");
 
         equals(d.length(), 2, "length()");
         d.clear();
