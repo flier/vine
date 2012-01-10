@@ -38,9 +38,13 @@
 
         require([
             "utils/oop",
+            "utils/log",
+            "utils/shell",
+            "utils/bson",
             "api/list",
             "api/set",
-            "api/dict"
+            "api/dict",
+            "api/collection"
         ], function () {
             for (var i=0; i<arguments.length; i++) {
                 arguments[i].tests();

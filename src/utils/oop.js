@@ -45,7 +45,7 @@ Function.prototype.extend = function (props) {
 };
 
 exports.tests = function () {
-    module("OOP utils");
+    module("OOP Utils");
 
     test("inherit and extend", function () {
         var Animal = function () {

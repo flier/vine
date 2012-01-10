@@ -1,7 +1,13 @@
 define(["require", "exports"], function (require, exports) {
 
+var Shell = function () {
+
+};
+
+exports.Shell = Shell;
+
 exports.tests = function () {
-    module("Log Utils");
+    module("Shell Utils");
 };
 
 });
