@@ -67,6 +67,10 @@ Set.extend({
 
         return this.items[idx];
     },
+    each: function (callback /* (index, value) */) {
+        return this.items.each(callback);
+    },
+
     _collect: function (args) {
         var items = this.items.clone();
 
@@ -155,6 +159,14 @@ exports.tests = function () {
         ok(s.contains(s.random()), "random()");
         ok(!s.contains(s.pop()), "pop()");
         equals(s.length(), 2, "length()");
+
+        var sum = 0;
+
+        new Set([1, 2, 3]).each(function (idx, value) {
+            sum += value;
+        });
+
+        equals(sum, 6, "each()");
     });
 
     test("interop set operation", function () {

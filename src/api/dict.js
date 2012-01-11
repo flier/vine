@@ -38,6 +38,15 @@ Dict.inherit(Object).extend({
         for (var i=0; i<props.length; i++) {
             delete this[props[i]];
         }
+    },
+    each: function (callback /* boolean callback(key, value) */) {
+        var props = Object.getOwnPropertyNames(this);
+
+        for (var i=0; i<props.length; i++) {
+            var ret = callback(props[i], this[props[i]]);
+
+            if (ret) return ret;
+        }
     }
 });
 
@@ -60,6 +69,14 @@ exports.tests = function () {
         equals(d.length(), 2, "length()");
         d.clear();
         equals(d.length(), 0, "clear()");
+
+        var sum = 0;
+
+        new Dict({ a: 1, b: 2, c: 3 }).each(function (k, v) {
+            sum += v;
+        });
+
+        equals(sum, 6, "each()");
     });
 };
 
