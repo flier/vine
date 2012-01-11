@@ -146,8 +146,6 @@ var Logger = function (name, level) {
 
 Logger.extend({
     log: function (level, msg, args) {
-        if (level < this.level) return;
-
         var record = new LogRecord(this, level, msg, args);
 
         for (var i=0; i<this.handlers.length; i++) {
@@ -156,19 +154,29 @@ Logger.extend({
     },
 
     debug: function (msg) {
-        this.log.apply(this, [Level.DEBUG, msg, copyArgs(arguments, 1)]);
+        if (this.level < Level.DEBUG) {
+            this.log.apply(this, [Level.DEBUG, msg, copyArgs(arguments, 1)]);
+        }
     },
     info: function (msg) {
-        this.log.apply(this, [Level.INFO, msg, copyArgs(arguments, 1)]);
+        if (this.level < Level.INFO) {
+            this.log.apply(this, [Level.INFO, msg, copyArgs(arguments, 1)]);
+        }
     },
     warn: function (msg) {
-        this.log.apply(this, [Level.WARN, msg, copyArgs(arguments, 1)]);
+        if (this.level < Level.WARN) {
+            this.log.apply(this, [Level.WARN, msg, copyArgs(arguments, 1)]);
+        }
     },
     error: function (msg) {
-        this.log.apply(this, [Level.ERROR, msg, copyArgs(arguments, 1)]);
+        if (this.level < Level.ERROR) {
+            this.log.apply(this, [Level.ERROR, msg, copyArgs(arguments, 1)]);
+        }
     },
     fatal: function (msg) {
-        this.log.apply(this, [Level.FATAL, msg, copyArgs(arguments, 1)]);
+        if (this.level < Level.FATAL) {
+            this.log.apply(this, [Level.FATAL, msg, copyArgs(arguments, 1)]);
+        }
     }
 });
 
@@ -194,7 +202,19 @@ exports.tests = function () {
 
         logger.info('test');
 
-        equals(handler.str, 'INFO test');
+        equals(handler.str, 'INFO test', "log message");
+
+        logger.info('test number=%d, str=%s, float=%.2f', 123, 'test', 3.1415926);
+
+        equals(handler.str, 'INFO test number=123, str=test, float=3.14', "formated message");
+
+        logger.level = Level.ERROR;
+
+        handler.str = null;
+
+        logger.info('test');
+
+        equals(handler.str, null, "ignore the lower level");
     });
 };
 
