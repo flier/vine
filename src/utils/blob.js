@@ -11,9 +11,114 @@ Binary.wrap = function (buf, len, off) {
 }
 
 Binary.extend({
+    writeUtf8String: function (str) {
+        var v = this.getByteBuffer();
+        var idx = 0;
+
+        for (var i=0; i<str.length; i++) {
+            var c = str.charCodeAt(i);
+
+            if (c < 128) {
+                v.put(idx++, c);
+            } else if (c < 2048) {
+                v.put(idx++, (c >> 6) | 192);
+                v.put(idx++, (c & 63) | 128);
+            } else {
+                v.put(idx++, (c >> 12) | 224);
+                v.put(idx++, ((c >> 6) & 63) | 128);
+                v.put(idx++, (c & 63) | 128);
+            }
+        }
+
+        this.offset += idx;
+
+        return idx;
+    },
+    readUtf8String: function (len) {
+        var v = this.getByteBuffer();
+        var chars = [];
+
+        for (var i=0; i<(len || v.byteLength); i++) {
+            var c = v.get(i);
+
+            if ((c & 224) == 224) {
+                c = ((c & ~224) << 12) | ((v.get(++i) & ~128) << 6) | (v.get(++i) & ~128);
+            } else if ((c & 192) == 192) {
+                c = ((c & ~192) << 6) | (v.get(++i) & ~128);
+            }
+
+            if (!len && c == 0) break;
+
+            chars.push(c);
+        }
+
+        this.offset += i;
+
+        return String.fromCharCode.apply(null, chars);
+    },
+    writeInt: function (/* num, num, ... */) {
+        var v = this.getByteBuffer();
+
+        var idx = 0;
+
+        for (var i=0; i<arguments.length; i++) {
+            var arg = arguments[i];
+            var num = arg instanceof Number ? arg : parseInt(arg);
+
+            v.put(idx++, num & 0xff);
+            v.put(idx++, (num >> 8) & 0xff);
+            v.put(idx++, (num >> 16) & 0xff);
+            v.put(idx++, (num >> 24) & 0xff);
+        }
+
+        this.offset += idx;
+
+        return idx;
+    },
+    readInt: function (count) {
+        var v = this.getByteBuffer();
+
+        if (count) {
+            var nums = new Array(count);
+
+            for (var i=0; i<count; i++) {
+                nums[i] = this.readInt();
+            }
+
+            return nums;
+        } else {
+            var num = v.get(0) | (v.get(1) << 8) | (v.get(2) << 16) | (v.get(3) << 24);
+
+            this.offset += 4;
+
+            return num;
+        }
+    }
 });
 
 if (typeof Uint8Array == "function") {
+    if (typeof ArrayBuffer['slice'] != 'function') {
+        ArrayBuffer.prototype.slice = function (begin, end) {
+            begin = begin || 0;
+            end = end || this.byteLength, this.byteLength;
+
+            var len = end - begin;
+
+            var buf = new ArrayBuffer(len);
+            var src = new Uint8Array(this, begin, len);
+            var dst = new Uint8Array(buf);
+
+            for (var i=0; i<len; i++) {
+                dst.put(i, src.get(i));
+            }
+
+            return buf;
+        };
+    }
+
+    Uint8Array.prototype.get = function (idx) { return this[idx]; };
+    Uint8Array.prototype.put = function (idx, value) { this[idx] = value; };
+
     Binary.alloc = function (len) {
         return new Binary(new ArrayBuffer(len), len, 0);
     };
@@ -21,90 +126,6 @@ if (typeof Uint8Array == "function") {
     Binary.extend({
         getByteBuffer: function () {
             return new Uint8Array(this.buffer, this.offset, this.length - this.offset);
-        },
-        writeUtf8String: function (str) {
-            var v = this.getByteBuffer();
-            var idx = 0;
-
-            for (var i=0; i<str.length; i++) {
-                var c = str.charCodeAt(i);
-
-                if (c < 128) {
-                    v[idx++] = c;
-                } else if (c < 2048) {
-                    v[idx++] = (c >> 6) | 192;
-                    v[idx++] = (c & 63) | 128;
-                } else {
-                    v[idx++] = (c >> 12) | 224;
-                    v[idx++] = ((c >> 6) & 63) | 128;
-                    v[idx++] = (c & 63) | 128;
-                }
-            }
-
-            this.offset += idx;
-
-            return idx;
-        },
-        readUtf8String: function (len) {
-            var v = this.getByteBuffer();
-            var chars = [];
-
-            var i;
-
-            for (i=0; i<(len || v.byteLength); i++) {
-                var c = v[i];
-
-                if ((c & 224) == 224) {
-                    c = ((c & ~224) << 12) | ((v[++i] & ~128) << 6) | (v[++i] & ~128);
-
-                } else if ((c & 192) == 192) {
-                    c = ((c & ~192) << 6) | (v[++i] & ~128);
-                }
-
-                if (!len && c == 0) break;
-
-                chars.push(c);
-            }
-
-            this.offset += i;
-
-            return String.fromCharCode.apply(null, chars);
-        },
-        writeInt: function (/* num, num, ... */) {
-            var v = this.getByteBuffer();
-
-            var idx = 0;
-
-            for (var i=0; i<arguments.length; i++) {
-                var arg = arguments[i];
-                var num = arg instanceof Number ? arg : parseInt(arg);
-
-                v[idx++] = num & 0xff;
-                v[idx++] = (num >> 8) & 0xff;
-                v[idx++] = (num >> 16) & 0xff;
-                v[idx++] = (num >> 24) & 0xff;
-            }
-
-            this.offset += idx;
-
-            return idx;
-        },
-        readInt: function (count) {
-            var v = this.getByteBuffer();
-
-            if (count) {
-                var nums = new Array(count);
-
-                for (var i=0; i<count; i++) {
-                    nums[i] = this.readInt();
-                }
-
-                return nums;
-            } else {
-                this.offset += 4;
-
-                return v[0] | (v[1] << 8) | (v[2] << 16) | (v[3] << 24);
-            }
         }
     });
 } else {
@@ -154,8 +175,6 @@ if (typeof Uint8Array == "function") {
             }
         });
 
-
-
         Binary.alloc = function (len) {
             return new Binary(new ArrayBuffer(len), len, 0);
         };
@@ -163,89 +182,6 @@ if (typeof Uint8Array == "function") {
         Binary.extend({
             getByteBuffer: function () {
                 return new Uint8Array(this.buffer, this.offset, this.length - this.offset);
-            },
-            writeUtf8String: function (str) {
-                var v = this.getByteBuffer();
-                var idx = 0;
-
-                for (var i=0; i<str.length; i++) {
-                    var c = str.charCodeAt(i);
-
-                    if (c < 128) {
-                        v.put(idx++, c);
-                    } else if (c < 2048) {
-                        v.put(idx++, (c >> 6) | 192);
-                        v.put(idx++, (c & 63) | 128);
-                    } else {
-                        v.put(idx++, (c >> 12) | 224);
-                        v.put(idx++, ((c >> 6) & 63) | 128);
-                        v.put(idx++, (c & 63) | 128);
-                    }
-                }
-
-                this.offset += idx;
-
-                return idx;
-            },
-            readUtf8String: function (len) {
-                var v = this.getByteBuffer();
-                var chars = [];
-
-                for (var i=0; i<(len || v.byteLength); i++) {
-                    var c = v.get(i);
-
-                    if ((c & 224) == 224) {
-                        c = ((c & ~224) << 12) | ((v.get(++i) & ~128) << 6) | (v.get(++i) & ~128);
-                    } else if ((c & 192) == 192) {
-                        c = ((c & ~192) << 6) | (v.get(++i) & ~128);
-                    }
-
-                    if (!len && c == 0) break;
-
-                    chars.push(c);
-                }
-
-                this.offset += i;
-
-                return String.fromCharCode.apply(null, chars);
-            },
-            writeInt: function (/* num, num, ... */) {
-                var v = this.getByteBuffer();
-
-                var idx = 0;
-
-                for (var i=0; i<arguments.length; i++) {
-                    var arg = arguments[i];
-                    var num = arg instanceof Number ? arg : parseInt(arg);
-
-                    v.put(idx++, num & 0xff);
-                    v.put(idx++, (num >> 8) & 0xff);
-                    v.put(idx++, (num >> 16) & 0xff);
-                    v.put(idx++, (num >> 24) & 0xff);
-                }
-
-                this.offset += idx;
-
-                return idx;
-            },
-            readInt: function (count) {
-                var v = this.getByteBuffer();
-
-                if (count) {
-                    var nums = new Array(count);
-
-                    for (var i=0; i<count; i++) {
-                        nums[i] = this.readInt();
-                    }
-
-                    return nums;
-                } else {
-                    var num = v.get(0) | (v.get(1) << 8) | (v.get(2) << 16) | (v.get(3) << 24);
-
-                    this.offset += 4;
-
-                    return num;
-                }
             }
         });
     })();
