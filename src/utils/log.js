@@ -1,4 +1,4 @@
-define(["require", "exports", "js!sprintf", "utils/oop", "api/list"], function (require, exports) {
+define(["require", "exports", "utils/oop", "utils/string", "api/list"], function (require, exports) {
 
 var Level = {
     ALL: 0,
@@ -82,10 +82,10 @@ var Formatter = function (fmt) {
 Formatter.extend({
     format: function (record) {
         if (record.args) {
-            record.message = vsprintf(record.message, record.args);
+            record.message = record.message.vsprintf(record.args);
         }
 
-        return sprintf(this.fmt, record);
+        return this.fmt.sprintf(record);
     }
 });
 
