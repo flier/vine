@@ -1,4 +1,4 @@
-define(["require", "exports"], function (require, exports) {
+define("api/collection", ["require", "exports"], function (require, exports) {
 
 var Collection = function () {
 

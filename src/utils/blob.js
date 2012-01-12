@@ -1,4 +1,4 @@
-define(["require", "exports", "utils/oop"], function (require, exports) {
+define("utils/blob", ["require", "exports", "utils/oop"], function (require, exports) {
 
 var Binary = function (buf, off) {
     this.buffer = buf;

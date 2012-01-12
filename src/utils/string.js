@@ -1,4 +1,4 @@
-define(["require", "exports", "utils/oop", "js!sprintf"], function (require, exports) {
+define("utils/string", ["require", "exports", "utils/oop", "js!sprintf"], function (require, exports) {
 
 String.extend({
     sprintf: function () {

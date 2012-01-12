@@ -1,4 +1,4 @@
-define(["require", "exports", "utils/oop"], function (require, exports) {
+define("api/list", ["require", "exports", "utils/oop"], function (require, exports) {
 
 Array.extend({
     range: function (start, stop) {

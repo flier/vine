@@ -1,4 +1,4 @@
-define(["require", "exports", "utils/oop", "utils/string", "api/list"], function (require, exports) {
+define("utils/log", ["require", "exports", "utils/oop", "utils/string", "api/list"], function (require, exports) {
 
 var Level = {
     ALL: 0,

@@ -1,4 +1,4 @@
-define(["require", "exports", "utils/blob"], function (require, exports, blob) {
+define("utils/bson", ["require", "exports", "utils/blob"], function (require, exports, blob) {
 
 var BSON = function () {
 };

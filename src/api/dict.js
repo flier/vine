@@ -1,24 +1,4 @@
-define(["require", "exports", "api/list", "utils/oop"], function (require, exports) {
-
-Object.extend({
-    clone: function () {
-        console.log(this);
-
-        var obj = this instanceof Array ? [] : {};
-
-        for (var prop in this) {
-            if (prop == 'clone') continue;
-
-            if (this[prop] && typeof this[prop] == 'object') {
-                obj[prop] = this[prop].clone();
-            } else {
-                obj[prop] = this[prop];
-            }
-        }
-
-        return obj;
-    }
-});
+define("api/dict", ["require", "exports", "api/list", "utils/oop"], function (require, exports) {
 
 var Dict = function (obj) {
     obj = obj || {};
@@ -59,7 +39,7 @@ Dict.inherit(Object).extend({
             delete this[props[i]];
         }
     },
-    each: function (callback /* boolean callback(key, value) */) {
+    each: function (callback /* key, value */) {
         var props = Object.getOwnPropertyNames(this);
 
         for (var i=0; i<props.length; i++) {
@@ -67,6 +47,29 @@ Dict.inherit(Object).extend({
 
             if (ret) return ret;
         }
+    },
+    clone: function () {
+        var obj = {};
+
+        var props = Object.getOwnPropertyNames(this);
+
+        for (var i=0; i<props.length; i++) {
+            var name = props[i];
+
+            if (name == 'clone') return;
+
+            var value = this[name];
+
+            if (value &&
+                typeof value == 'object' &&
+                typeof value['clone'] == 'function') {
+                obj[name] = value.clone();
+            } else {
+                obj[name] = value;
+            }
+        }
+
+        return obj;
     }
 });
 
@@ -98,7 +101,7 @@ exports.tests = function () {
 
         equals(sum, 6, "each()");
 
-        var o = {a: 1, b: [1, 2, 3], c: { d: 4 }};
+        var o = new Dict({a: 1, b: [1, 2, 3], c: { d: 4 }});
 
         equals(o.clone().a, 1, "object.clone()");
         equals(o.clone().b.length, 3, "object.clone() array");

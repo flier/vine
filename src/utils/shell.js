@@ -1,4 +1,4 @@
-define(["require", "exports"], function (require, exports) {
+define("utils/shell", ["require", "exports"], function (require, exports) {
 
 var Shell = function () {
 

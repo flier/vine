@@ -1,5 +1,4 @@
-define(["require", "exports", "api/list", "utils/oop"],
-    function (require, exports) {
+define("api/set", ["require", "exports", "utils/oop"], function (require, exports) {
 
 var Set = function (set_or_array) {
     if (set_or_array instanceof Set) {
