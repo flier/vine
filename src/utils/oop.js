@@ -1,20 +1,4 @@
-define(["require", "exports"], function (require, exports) {
-
-Object.prototype.clone = function () {
-    var obj = this instanceof Array ? [] : {};
-
-    for (var prop in this) {
-        if (prop == 'clone') continue;
-
-        if (this[prop] && typeof this[prop] == 'object') {
-            obj[prop] = this[prop].clone();
-        } else {
-            obj[prop] = this[prop];
-        }
-    }
-
-    return obj;
-};
+define("utils/oop", ["require", "exports"], function (require, exports) {
 
 Function.prototype.inherit = function (parent) {
     if (parent.constructor == Function) {
@@ -64,16 +48,10 @@ exports.tests = function () {
 
         var c = new Cat();
 
-        equal(c.parent, Animal.prototype, "parent == super.prototype");
+        equals(c.parent, Animal.prototype, "parent == super.prototype");
 
-        equal(c.name(), "cat", "super.method");
-        equal(c.hello(), "hello from cat", "extend method");
-
-        var o = {a: 1, b: [1, 2, 3], c: { d: 4 }};
-
-        equals(o.clone().a, 1, "object.clone()");
-        equals(o.clone().b.length, 3, "object.clone() array");
-        equals(o.clone().c.d, 4, "object.clone() object");
+        equals(c.name(), "cat", "super.method");
+        equals(c.hello(), "hello from cat", "extend method");
     });
 };
 

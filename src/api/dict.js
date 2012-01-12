@@ -1,5 +1,25 @@
 define(["require", "exports", "api/list", "utils/oop"], function (require, exports) {
 
+Object.extend({
+    clone: function () {
+        console.log(this);
+
+        var obj = this instanceof Array ? [] : {};
+
+        for (var prop in this) {
+            if (prop == 'clone') continue;
+
+            if (this[prop] && typeof this[prop] == 'object') {
+                obj[prop] = this[prop].clone();
+            } else {
+                obj[prop] = this[prop];
+            }
+        }
+
+        return obj;
+    }
+});
+
 var Dict = function (obj) {
     obj = obj || {};
 
@@ -77,6 +97,12 @@ exports.tests = function () {
         });
 
         equals(sum, 6, "each()");
+
+        var o = {a: 1, b: [1, 2, 3], c: { d: 4 }};
+
+        equals(o.clone().a, 1, "object.clone()");
+        equals(o.clone().b.length, 3, "object.clone() array");
+        equals(o.clone().c.d, 4, "object.clone() object");
     });
 };
 
