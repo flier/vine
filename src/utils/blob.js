@@ -1,4 +1,4 @@
-define("utils/blob", ["require", "exports", "utils/oop", "api/list"], function (require, exports) {
+define("utils/blob", ["require", "exports", "api/long", "utils/oop", "api/list"], function (require, exports, long) {
 
 var Binary = function (buf, off, len) {
     this.buffer = this.getByteView(buf, off, len);
@@ -121,6 +121,40 @@ Binary.extend({
             var num = this.get(0) | (this.get(1) << 8) | (this.get(2) << 16) | (this.get(3) << 24);
 
             this.offset += 4;
+
+            return num;
+        }
+    },
+    writeLong: function (/* num, num, ... */) {
+        for (var i=0; i<arguments.length; i++) {
+            var arg = arguments[i];
+
+            var num;
+
+            if (arg instanceof long.Long) {
+                num = arg;
+            } else if (arg instanceof Number) {
+                num = (arg % 1 == 0) ? long.Long.fromInt(arg) : long.Long.fromNumber(arg);
+            } else {
+                num = long.Long.fromString(arg);
+            }
+
+            this.writeInt(num.low_, num.high_);
+        }
+
+        return 8 * arguments.length;
+    },
+    readLong: function (count) {
+        if (count) {
+            var nums = new Array(count);
+
+            for (var i=0; i<count; i++) {
+                nums[i] = this.readLong();
+            }
+
+            return nums;
+        } else {
+            var num = new long.Long(this.readInt(), this.readInt());
 
             return num;
         }
@@ -363,6 +397,13 @@ exports.tests = function () {
         bin.reset();
         equals(bin.readDouble(), 3.1415926, "readDouble");
         equals(bin.offset, 8);
+
+        bin.reset();
+        equals(bin.writeLong(long.Long.MAX_VALUE), 8, "writeLong");
+        equals(bin.offset, 8);
+
+        bin.reset();
+        ok(bin.readLong().equals(long.Long.MAX_VALUE), "readLong");
     });
 
     test("basic Blob operation", function () {
