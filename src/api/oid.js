@@ -1,4 +1,4 @@
-define("utils/oid", ["require", "exports", "utils/uuid", "utils/oop", "api/list"],
+define("api/oid", ["require", "exports", "utils/uuid", "utils/oop", "api/list"],
     function (require, exports, uuid) {
 
 var ObjectId = function (oid) {

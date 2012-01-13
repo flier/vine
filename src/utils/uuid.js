@@ -8,7 +8,7 @@ define("utils/uuid", ["require", "exports"], function (require, exports) {
     // Math.random() does not guarantee "cryptographic quality".  So we feature
     // detect for more robust APIs, normalizing each method to return 128-bits
     // (16 bytes) of random data.
-    var mathRNG, nodeRNG;
+    var mathRNG, whatwgRNG;
 
     // Math.random()-based RNG.  All platforms, very fast, unknown quality
     var _rndBytes = new Array(16);
@@ -25,7 +25,7 @@ define("utils/uuid", ["require", "exports"], function (require, exports) {
 
     // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
     // WebKit only (currently), moderately fast, high quality
-    if (crypto && crypto.getRandomValues) {
+    if (this.crypto && crypto.getRandomValues) {
         var _rnds = new Uint32Array(4);
         whatwgRNG = function () {
             crypto.getRandomValues(_rnds);

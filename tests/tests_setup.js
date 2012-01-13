@@ -16,10 +16,11 @@ var TESTING_MODULES = [
     "utils/log",
     "utils/shell",
     "utils/blob",
-    "utils/oid",
     "utils/bson",
     "api/list",
     "api/set",
     "api/dict",
+    "api/oid",
+    "api/timestamp",
     "api/collection"
 ];

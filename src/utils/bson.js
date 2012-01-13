@@ -1,5 +1,5 @@
-define("utils/bson", ["require", "exports", "utils/blob", "api/long", "utils/oid", "utils/oop", "utils/string"],
-    function (require, exports, blob, long, oid) {
+define("utils/bson", ["require", "exports", "utils/blob", "api/long", "api/oid", "api/timestamp", "utils/oop", "utils/string"],
+    function (require, exports, blob, long, oid, ts) {
 
 /**
  *  BSON is a binary format in which zero or more key/value pairs are stored as a single entity.
@@ -170,7 +170,7 @@ BSON.inherit(blob.Binary).extend({
                     this.put(NULL_TYPE);
                     this.writeCString(name);
                 } else if (value instanceof long.Long) {
-                    this.put(INT64_TYPE);
+                    this.put(value instanceof ts.Timestamp ? TIMESTAMP_TYPE : INT64_TYPE);
                     this.writeCString(name);
                     this.writeLong(value);
                 } else if (value instanceof oid.ObjectId) {
@@ -310,6 +310,11 @@ BSON.inherit(blob.Binary).extend({
                     obj[name] = this.readLong();
                     break;
                 }
+                case TIMESTAMP_TYPE:
+                {
+                    obj[name] = new ts.Timestamp(this.readInt(), this.readInt());
+                    break;
+                }
                 case BOOLEAN_TYPE:
                 {
                     obj[name] = this.get() == TRUE;
@@ -404,7 +409,8 @@ exports.tests = function () {
                 a: 1,
                 b: 2
             },
-            oid: new oid.ObjectId([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+            oid: new oid.ObjectId([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+            ts: new ts.Timestamp(123)
         }) > 0, "serialize");
 
         bson.reset();
@@ -425,6 +431,7 @@ exports.tests = function () {
         equals(obj.n, null, "null");
         equals(obj.o.a, 1, "object");
         equals(obj.oid.toString(), '000102030405060708090a0b', "ObjectId");
+        equals(obj.ts.steps(), 123, "Timestamp");
     });
 };
 
