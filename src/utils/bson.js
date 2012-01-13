@@ -74,6 +74,8 @@ var FALSE = 0;
 var MAX_INT = Math.pow(2, 31) - 1;
 var MIN_INT = -Math.pow(2, 31);
 
+var FUNCTION_MATCH = /^\s*function(?:\s+\S+)?\s*\(([^\)]*)\)\s*\{([\s\S]*)\}\s*$/
+
 var BSON = function (buf, off, len) {
     this.parent.constructor.call(this, buf, off, len);
 };
@@ -108,11 +110,30 @@ BSON.inherit(blob.Binary).extend({
         return stop - start;
     },
     writeElement: function (name, value) {
-         switch (typeof value) {
+        switch (typeof value) {
             case 'string': {
                 this.put(STRING_TYPE);
                 this.writeCString(name);
                 this.writeString(value);
+                break;
+            }
+            case 'function': {
+                if (value.scope) {
+                    this.put(CODE_WITH_SCOPE_TYPE);
+                    this.writeCString(name);
+
+                    var off = this.offset;
+                    this.writeInt(0);
+                    this.writeString(value.toString());
+                    this.serialize(value.scope);
+                    off = this.seek(off);
+                    this.writeInt(off - this.offset);
+                    this.seek(off);
+                } else {
+                    this.put(CODE_TYPE);
+                    this.writeCString(name);
+                    this.writeString(value.toString());
+                }
                 break;
             }
             case 'number': {
@@ -177,6 +198,82 @@ BSON.inherit(blob.Binary).extend({
             }
         }
     },
+    readEmbeddedObject: function (isArray) {
+        var off = this.offset;
+        var len = this.readInt();
+        this.seek(off);
+        var obj = this.deserialize(isArray);
+        this.seek(off+len);
+        return obj;
+    },
+    makeFunction: function (code, scope) {
+        var func;
+        try {
+            var args = [], funcParts = FUNCTION_MATCH.exec(code);
+            if (funcParts) {
+                args = funcParts[1].split(',').map(function(name) { return name.trim() })
+                code = funcParts[2]
+            }
+            if (scope) code = "with("+this.toSource(scope)+"){"+code+"}";
+            func = new Function(args, code);
+        } catch (e) {
+            func = {};
+        }
+        func.code = code;
+        if (scope) func.scope = scope;
+        return func;
+    },
+    /**
+     * Converts JavaScript objects to source
+     *
+     * https://github.com/marcello3d/node-tosource/blob/master/tosource.js
+     *
+     */
+    toSource: function(object, filter, indent, startingIndent) {
+        var seen = []
+        return walk(object, filter, indent === undefined ? '  ' : (indent || ''), startingIndent || '')
+
+        function legalKey(key) {
+            var KEYWORD_REGEXP = /^(abstract|boolean|break|byte|case|catch|char|class|const|continue|debugger|default|delete|do|double|else|enum|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|undefined|var|void|volatile|while|with)$/
+
+            return /^[a-z_$][0-9a-z_$]*$/gi.test(key) && !KEYWORD_REGEXP.test(key)
+        }
+
+        function walk(object, filter, indent, currentIndent) {
+            var nextIndent = currentIndent + indent
+            object = filter ? filter(object) : object
+            switch (typeof object) {
+                case 'string':
+                    return JSON.stringify(object);
+                case 'boolean':
+                case 'number':
+                case 'function':
+                case 'undefined':
+                    return ''+object
+            }
+
+            if (object === null) return 'null';
+            if (object instanceof RegExp) return object.toString();
+            if (object instanceof Date) return 'new Date('+object.getTime()+')';
+
+            if (seen.indexOf(object) >= 0) return '{$circularReference:1}';
+            seen.push(object);
+
+            function join(elements) {
+                return indent.slice(1) + elements.join(','+(indent&&'\n')+nextIndent) + (indent ? ' ' : '');
+            }
+
+            if (Array.isArray(object)) {
+                return '[' + join(object.map(function(element){
+                    return walk(element, filter, indent, nextIndent)
+                })) + ']'
+            }
+            var keys = Object.keys(object);
+            return keys.length ? '{' + join(keys.map(function (key) {
+                return (legalKey(key) ? key : JSON.stringify(key)) + ':' + walk(object[key], filter, indent, nextIndent);
+            })) + '}' : '{}';
+        }
+    },
     deserialize: function (isArray) {
         var len = this.readInt();
         var remaining = this.length - this.offset + 4;
@@ -224,6 +321,17 @@ BSON.inherit(blob.Binary).extend({
                     obj[name] = new RegExp(this.readCString(), this.readCString());
                     break;
                 }
+                case CODE_TYPE:
+                {
+                    obj[name] = this.makeFunction(this.readString());
+                    break;
+                }
+                case CODE_WITH_SCOPE_TYPE:
+                {
+                    this.readInt(); // skip the length
+                    obj[name] = this.makeFunction(this.readString(), this.readEmbeddedObject());
+                    break;
+                }
                 case STRING_TYPE:
                 case SYMBOL_TYPE:
                 {
@@ -232,12 +340,12 @@ BSON.inherit(blob.Binary).extend({
                 }
                 case EMBEDDED_DOCUMENT_TYPE:
                 {
-                    obj[name] = this.deserialize(false);
+                    obj[name] = this.readEmbeddedObject(false);
                     break;
                 }
                 case ARRAY_TYPE:
                 {
-                    obj[name] = this.deserialize(true);
+                    obj[name] = this.readEmbeddedObject(true);
                     break;
                 }
                 case UNDEFINED_TYPE:
@@ -268,7 +376,11 @@ exports.tests = function () {
     test("basic BSON operation", function () {
         var bson = BSON.alloc(1024);
 
-        equals(bson.serialize({
+        var name = 'flier';
+        var func = function () { return 'hello ' + name; };
+        func.scope = { name: name };
+
+        ok(bson.serialize({
             i: 123456789,
             l: long.Long.MAX_VALUE,
             f: 3.1415926,
@@ -277,11 +389,13 @@ exports.tests = function () {
             b: true,
             u: undefined,
             n: null,
+            hello: function (name) { return 'hello ' + name; },
+            hello_flier: func,
             o: {
                 a: 1,
                 b: 2
             }
-        }), 88, "serialize");
+        }) > 0, "serialize");
 
         bson.reset();
 
@@ -296,6 +410,8 @@ exports.tests = function () {
         ok(!obj.r.ignoreCase);
         ok(obj.b, "boolean");
         equals(obj.u, undefined, "undefined");
+        equals(obj.hello('flier'), 'hello flier');
+        equals(obj.hello_flier(), 'hello flier');
         equals(obj.n, null, "null");
         equals(obj.o.a, 1, "object");
     });
