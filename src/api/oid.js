@@ -22,7 +22,13 @@ ObjectId.extend({
     }
 });
 
+var DatabaseRef = function (name, oid) {
+    this.name = name;
+    this.oid = oid;
+}
+
 exports.ObjectId = ObjectId;
+exports.DatabaseRef = DatabaseRef;
 
 exports.tests = function () {
     module("ObjectId Utils");

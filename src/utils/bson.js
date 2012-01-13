@@ -177,6 +177,11 @@ BSON.inherit(blob.Binary).extend({
                     this.put(OBJECT_ID_TYPE);
                     this.writeCString(name);
                     this.writeBytes(value.bytes);
+                } else if (value instanceof oid.DatabaseRef) {
+                    this.put(DB_REF_TYPE);
+                    this.writeCString(name);
+                    this.writeString(value.name);
+                    this.writeBytes(value.oid.bytes);
                 } else if (value instanceof RegExp) {
                     this.put(REG_EXP_TYPE);
                     this.writeCString(name);
@@ -362,6 +367,11 @@ BSON.inherit(blob.Binary).extend({
                     obj[name] = new oid.ObjectId(this.readBytes(12));
                     break;
                 }
+                case DB_REF_TYPE:
+                {
+                    obj[name] = new oid.DatabaseRef(this.readString(), new oid.ObjectId(this.readBytes(12)));
+                    break;
+                }
                 case UNDEFINED_TYPE:
                 {
                     obj[name] = undefined;
@@ -410,6 +420,7 @@ exports.tests = function () {
                 b: 2
             },
             oid: new oid.ObjectId([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+            db: new oid.DatabaseRef('test', new oid.ObjectId()),
             ts: new ts.Timestamp(123)
         }) > 0, "serialize");
 
@@ -431,6 +442,7 @@ exports.tests = function () {
         equals(obj.n, null, "null");
         equals(obj.o.a, 1, "object");
         equals(obj.oid.toString(), '000102030405060708090a0b', "ObjectId");
+        equals(obj.db.name, "test", "DatabaseRef");
         equals(obj.ts.steps(), 123, "Timestamp");
     });
 };
