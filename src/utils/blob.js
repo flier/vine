@@ -1,8 +1,11 @@
 define("utils/blob", ["require", "exports", "api/long", "utils/oop", "api/list"], function (require, exports, long) {
 
 var Binary = function (buf, off, len) {
-    this.buffer = this.getByteView(buf, off, len);
-    this.offset = 0;
+    off = off || 0;
+    len = len || (buf && buf.byteLength) || 0;
+
+    this.buffer = buf ? this.getByteView(buf, off, len) : null;
+    this.offset = off;
     this.length = len;
 };
 
@@ -10,11 +13,15 @@ Binary.alloc = function (len) {
     return new Binary(Binary.getBuffer(len), 0, len);
 };
 Binary.wrap = function (buf, off, len) {
-    return new Binary(buf, len || buf.byteLength, off || 0);
+    return new Binary(buf, off, len);
 };
 Binary.extend({
+    NULL: 0,
     seek: function (off) {
-        this.offset = off || 0;
+        this.offset += off || 0;
+    },
+    seekTo: function (pos) {
+        this.offset = pos || 0;
     },
     reset: function () {
         this.offset = 0;
@@ -37,7 +44,7 @@ Binary.extend({
 
         var state = this.save();
 
-        this.seek(begin);
+        this.seekTo(begin);
 
         for (var i=0; i<len; i++) {
             bin.put(i, this.get(i));
@@ -82,7 +89,7 @@ Binary.extend({
                 c = ((c & ~192) << 6) | (this.get(++i) & ~128);
             }
 
-            if (!len && c == 0) break;
+            if (!len && c == this.NULL) break;
 
             chars.push(c);
         }
@@ -90,6 +97,20 @@ Binary.extend({
         this.offset += i;
 
         return String.fromCharCode.apply(null, chars);
+    },
+    writeCString: function (str) {
+        var len = this.writeUtf8String(str);
+
+        this.put(this.NULL); // NULL
+
+        return len + 1;
+    },
+    readCString: function () {
+        var str = this.readUtf8String();
+
+        this.get(); // skip NULL
+
+        return str;
     },
     writeInt: function (/* num, num, ... */) {
         var idx = 0;
@@ -283,14 +304,21 @@ if (typeof Uint8Array == "function") {
 
     Binary.extend({
         get: function (idx) {
-            return this.buffer[this.offset + idx];
+            if (idx == undefined) {
+                idx = this.offset++;
+            } else {
+                idx += this.offset;
+            }
+            return this.buffer[idx];
         },
         put: function (idx, value) {
             if (value == undefined) {
-                idx = 0;
                 value = idx;
+                idx = this.offset++;
+            } else {
+                idx += this.offset;
             }
-            this.buffer[this.offset + idx] = value;
+            this.buffer[idx] = value;
         },
         getByteView: function (buf, off, len) {
             var buf = new Uint8Array(buf, off, len);
@@ -332,15 +360,20 @@ if (typeof Uint8Array == "function") {
                 return buf;
             },
             get: function (idx) {
-                idx = this.offset + (idx || 0);
+                if (idx == undefined) {
+                    idx = this.offset++;
+                } else {
+                    idx += this.offset;
+                }
+
                 return ((this.buffer.buffer[idx>>1] >> ((idx % 2) * 8))) & 255;
             },
             put: function (idx, value) {
-                if (value != undefined) {
-                    idx += this.offset;
-                } else {
-                    idx = this.offset;
+                if (value == undefined) {
                     value = idx;
+                    idx = this.offset++;
+                } else {
+                    idx += this.offset;
                 }
                 this.buffer.buffer[idx>>1] = (this.buffer.buffer[idx>>1] & (255 << ((1 - idx % 2) * 8))) | (value << ((idx % 2) * 8));
             }
@@ -348,10 +381,7 @@ if (typeof Uint8Array == "function") {
     })();
 }
 
-var Blob = function () {
-};
-
-exports.Blob = Blob;
+exports.Binary = Binary;
 
 exports.tests = function () {
     module("Blob Utils");
@@ -364,6 +394,14 @@ exports.tests = function () {
         equals(bin.offset, 0, "offset");
         equals(bin.length, 8, "length");
 
+        equals(bin.writeCString("test"), 5, "writeCString");
+        equals(bin.offset, 5);
+
+        bin.reset();
+        equals(bin.readCString(), "test", "readCString");
+        equals(bin.offset, 5);
+
+        bin.reset();
         equals(bin.writeUtf8String("测试"), 6, "writeUtf8String");
         equals(bin.offset, 6);
 
@@ -404,10 +442,6 @@ exports.tests = function () {
 
         bin.reset();
         ok(bin.readLong().equals(long.Long.MAX_VALUE), "readLong");
-    });
-
-    test("basic Blob operation", function () {
-
     });
 };
 
