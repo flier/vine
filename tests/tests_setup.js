@@ -8,4 +8,18 @@ var curl = {
         modernizr: "../lib/modernizr/modernizr.js",
         sprintf: "../lib/sprintf/sprintf-0.7-beta1.js"
     }
-}
+};
+
+var TESTING_MODULES = [
+    "utils/oop",
+    "utils/string",
+    "utils/log",
+    "utils/shell",
+    "utils/blob",
+    "utils/oid",
+    "utils/bson",
+    "api/list",
+    "api/set",
+    "api/dict",
+    "api/collection"
+];

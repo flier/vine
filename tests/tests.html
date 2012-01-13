@@ -19,18 +19,9 @@
 
     <script type="text/javascript" src="../lib/jquery/jquery.js"></script>
     <script type="text/javascript" src="../lib/qunit/qunit.js"></script>
+    <script type="text/javascript" src="tests_setup.js"></script>
     <script type="text/javascript">
-        var curl = {
-            debug: true,
-            baseUrl: "../src",
-            apiName: "require",
-            paths: {
-                jquery: "../lib/jquery/jquery",
-                qunit: "../lib/qunit/qunit.js",
-                modernizr: "../lib/modernizr/modernizr.js",
-                sprintf: "../lib/sprintf/sprintf-0.7-beta1.js"
-            }
-        }
+        curl['baseUrl'] = "../src";
     </script>
     <script type="text/javascript" src="../lib/curl/curl.js"></script>
     <script type="text/javascript">
@@ -42,18 +33,7 @@
                 autostart: false
             })
 
-            require([
-                "utils/oop",
-                "utils/string",
-                "utils/log",
-                "utils/shell",
-                "utils/blob",
-                "utils/bson",
-                "api/list",
-                "api/set",
-                "api/dict",
-                "api/collection"
-            ], function () {
+            require(TESTING_MODULES, function () {
                 for (var i=0; i<arguments.length; i++) {
                     arguments[i].tests();
                 }

@@ -45,6 +45,22 @@ Binary.extend({
 
         return bin;
     },
+    writeBytes: function (bytes) {
+        for (var i=0; i<bytes.length; i++) {
+            this.put(bytes[i]);
+        }
+
+        return bytes.length;
+    },
+    readBytes: function (count) {
+        var bytes = new Array(count);
+
+        for (var i=0; i<count; i++) {
+            bytes[i] = this.get();
+        }
+
+        return bytes;
+    },
     writeUtf8String: function (str) {
         var idx = 0;
 
@@ -406,6 +422,13 @@ exports.tests = function () {
         equals(bin.offset, 0, "offset");
         equals(bin.length, 10, "length");
 
+        equals(bin.writeBytes([0, 1, 2, 3]), 4, "writeBytes");
+        equals(bin.offset, 4);
+
+        bin.reset();
+        ok(bin.readBytes(4).equals([0, 1, 2, 3]), "readBytes");
+
+        bin.reset();
         equals(bin.writeCString("test"), 5, "writeCString");
         equals(bin.offset, 5);
 

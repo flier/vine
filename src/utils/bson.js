@@ -1,5 +1,5 @@
-define("utils/bson", ["require", "exports", "utils/blob", "api/long", "utils/oop", "utils/string"],
-    function (require, exports, blob, long) {
+define("utils/bson", ["require", "exports", "utils/blob", "api/long", "utils/oid", "utils/oop", "utils/string"],
+    function (require, exports, blob, long, oid) {
 
 /**
  *  BSON is a binary format in which zero or more key/value pairs are stored as a single entity.
@@ -173,6 +173,10 @@ BSON.inherit(blob.Binary).extend({
                     this.put(INT64_TYPE);
                     this.writeCString(name);
                     this.writeLong(value);
+                } else if (value instanceof oid.ObjectId) {
+                    this.put(OBJECT_ID_TYPE);
+                    this.writeCString(name);
+                    this.writeBytes(value.bytes);
                 } else if (value instanceof RegExp) {
                     this.put(REG_EXP_TYPE);
                     this.writeCString(name);
@@ -348,6 +352,11 @@ BSON.inherit(blob.Binary).extend({
                     obj[name] = this.readEmbeddedObject(true);
                     break;
                 }
+                case OBJECT_ID_TYPE:
+                {
+                    obj[name] = new oid.ObjectId(this.readBytes(12));
+                    break;
+                }
                 case UNDEFINED_TYPE:
                 {
                     obj[name] = undefined;
@@ -394,7 +403,8 @@ exports.tests = function () {
             o: {
                 a: 1,
                 b: 2
-            }
+            },
+            oid: new oid.ObjectId([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
         }) > 0, "serialize");
 
         bson.reset();
@@ -414,6 +424,7 @@ exports.tests = function () {
         equals(obj.hello_flier(), 'hello flier');
         equals(obj.n, null, "null");
         equals(obj.o.a, 1, "object");
+        equals(obj.oid.toString(), '000102030405060708090a0b', "ObjectId");
     });
 };
 
