@@ -9,14 +9,13 @@ var Binary = function (buf, off, len) {
     this.length = len;
 };
 
+var NULL = 0;
+
 Binary.alloc = function (len) {
     return new Binary(Binary.getBuffer(len), 0, len);
 };
-Binary.wrap = function (buf, off, len) {
-    return new Binary(buf, off, len);
-};
+
 Binary.extend({
-    NULL: 0,
     seek: function (off) {
         var cur = this.offset;
 
@@ -80,7 +79,7 @@ Binary.extend({
                 c = ((c & ~192) << 6) | (this.get(++i) & ~128);
             }
 
-            if (!len && c == this.NULL) break;
+            if (!len && c == NULL) break;
 
             chars.push(c);
         }
@@ -92,7 +91,7 @@ Binary.extend({
     writeCString: function (str) {
         var len = this.writeUtf8String(str);
 
-        this.put(this.NULL); // NULL
+        this.put(NULL); // NULL
 
         return len + 1;
     },
@@ -156,6 +155,9 @@ Binary.extend({
             return num;
         }
     },
+    isInteger: function (num) {
+        return num % 1 == 0;
+    },
     writeLong: function (/* num, num, ... */) {
         for (var i=0; i<arguments.length; i++) {
             var arg = arguments[i];
@@ -165,7 +167,7 @@ Binary.extend({
             if (arg instanceof long.Long) {
                 num = arg;
             } else if (arg instanceof Number) {
-                num = (arg % 1 == 0) ? long.Long.fromInt(arg) : long.Long.fromNumber(arg);
+                num = this.isInteger(arg) ? long.Long.fromInt(arg) : long.Long.fromNumber(arg);
             } else {
                 num = long.Long.fromString(arg);
             }
@@ -427,7 +429,7 @@ exports.tests = function () {
         equals(bin.readUtf8String(6), "测试", "readUtf8String with length");
         equals(bin.offset, 6);
 
-        bin.put(Binary.NULL);
+        bin.put(NULL);
         bin.reset();
         equals(bin.readUtf8String(), "测试", "readUtf8String till NULL");
         equals(bin.offset, 6);
