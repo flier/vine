@@ -18,21 +18,14 @@ Binary.wrap = function (buf, off, len) {
 Binary.extend({
     NULL: 0,
     seek: function (off) {
-        this.offset += off || 0;
-    },
-    seekTo: function (pos) {
-        this.offset = pos || 0;
+        var cur = this.offset;
+
+        this.offset = off || 0;
+
+        return cur;
     },
     reset: function () {
         this.offset = 0;
-    },
-    save: function () {
-        return {
-            offset: this.offset
-        };
-    },
-    restore: function (state) {
-        this.offset = state.offset;
     },
     slice: function (begin, end) {
         begin = begin || 0;
@@ -42,15 +35,13 @@ Binary.extend({
 
         var bin = new Binary(Binary.getBuffer(len), 0, len);
 
-        var state = this.save();
-
-        this.seekTo(begin);
+        var start = this.seek(begin);
 
         for (var i=0; i<len; i++) {
             bin.put(i, this.get(i));
         }
 
-        this.restore(state);
+        this.seek(start);
         bin.reset();
 
         return bin;
@@ -111,6 +102,25 @@ Binary.extend({
         this.get(); // skip NULL
 
         return str;
+    },
+    writeString: function (str) {
+        var off = this.offset;
+
+        this.writeInt(0);
+        var len = this.writeCString(str);
+
+        off = this.seek(off);
+
+        len += this.writeInt(len);
+
+        this.seek(off);
+
+        return len;
+    },
+    readString: function () {
+        var len = this.readInt();
+
+        return this.readCString();
     },
     writeInt: function (/* num, num, ... */) {
         var idx = 0;
@@ -387,12 +397,12 @@ exports.tests = function () {
     module("Blob Utils");
 
     test("basic Binary operation", function () {
-        var bin = Binary.alloc(8);
+        var bin = Binary.alloc(10);
 
         ok(bin, "alloc");
         ok(bin.buffer, "buffer");
         equals(bin.offset, 0, "offset");
-        equals(bin.length, 8, "length");
+        equals(bin.length, 10, "length");
 
         equals(bin.writeCString("test"), 5, "writeCString");
         equals(bin.offset, 5);
@@ -402,6 +412,14 @@ exports.tests = function () {
         equals(bin.offset, 5);
 
         bin.reset();
+        equals(bin.writeString("test"), 9, "writeCString");
+        equals(bin.offset, 9);
+
+        bin.reset();
+        equals(bin.readString(), "test", "readCString");
+        equals(bin.offset, 9);
+
+        bin.reset();
         equals(bin.writeUtf8String("测试"), 6, "writeUtf8String");
         equals(bin.offset, 6);
 
@@ -409,6 +427,7 @@ exports.tests = function () {
         equals(bin.readUtf8String(6), "测试", "readUtf8String with length");
         equals(bin.offset, 6);
 
+        bin.put(Binary.NULL);
         bin.reset();
         equals(bin.readUtf8String(), "测试", "readUtf8String till NULL");
         equals(bin.offset, 6);
