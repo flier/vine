@@ -54,16 +54,6 @@ var Log = {
     }
 }
 
-function copyArgs(args, off) {
-    var result = [];
-
-    for (var i=off | 0; i<args.length; i++) {
-        result.push(args[i]);
-    }
-
-    return result;
-}
-
 var LogRecord = function (logger, level, msg, args) {
     this.name = logger.name;
     this.levelno = level;
@@ -155,27 +145,27 @@ Logger.extend({
 
     debug: function (msg) {
         if (this.level < Level.DEBUG) {
-            this.log.apply(this, [Level.DEBUG, msg, copyArgs(arguments, 1)]);
+            this.log.apply(this, [Level.DEBUG, msg, Array.prototype.slice.call(arguments, 1)]);
         }
     },
     info: function (msg) {
         if (this.level < Level.INFO) {
-            this.log.apply(this, [Level.INFO, msg, copyArgs(arguments, 1)]);
+            this.log.apply(this, [Level.INFO, msg, Array.prototype.slice.call(arguments, 1)]);
         }
     },
     warn: function (msg) {
         if (this.level < Level.WARN) {
-            this.log.apply(this, [Level.WARN, msg, copyArgs(arguments, 1)]);
+            this.log.apply(this, [Level.WARN, msg, Array.prototype.slice.call(arguments, 1)]);
         }
     },
     error: function (msg) {
         if (this.level < Level.ERROR) {
-            this.log.apply(this, [Level.ERROR, msg, copyArgs(arguments, 1)]);
+            this.log.apply(this, [Level.ERROR, msg, Array.prototype.slice.call(arguments, 1)]);
         }
     },
     fatal: function (msg) {
         if (this.level < Level.FATAL) {
-            this.log.apply(this, [Level.FATAL, msg, copyArgs(arguments, 1)]);
+            this.log.apply(this, [Level.FATAL, msg, Array.prototype.slice.call(arguments, 1)]);
         }
     }
 });

@@ -2,11 +2,7 @@ define("utils/string", ["require", "exports", "utils/oop", "js!sprintf"], functi
 
 String.extend({
     sprintf: function () {
-        var args = [this];
-
-        for (var i=0; i<arguments.length; i++) {
-            args.push(arguments[i]);
-        }
+        var args = [this].concat(Array.prototype.slice.call(arguments));
 
         return sprintf.apply(null, args);
     },
