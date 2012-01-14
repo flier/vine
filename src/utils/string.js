@@ -1,6 +1,9 @@
-define("utils/string", ["require", "exports", "utils/oop", "js!sprintf"], function (require, exports) {
+define("utils/string", ["require", "exports", "utils/oop", "js!sprintf"], function (require, exports, oop) {
 
 String.extend({
+    isString:  function (obj) {
+        return oop.getClassName(obj) == 'String';
+    },
     sprintf: function () {
         var args = [this].concat(Array.prototype.slice.call(arguments));
 

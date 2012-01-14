@@ -34,12 +34,6 @@ var getClassName = function (obj) {
     return name.substr(name.indexOf(' ')+1);
 };
 
-String.extend({
-    isString:  function (obj) {
-        return getClassName(obj) == 'String';
-    }
-})
-
 exports.getClassName = getClassName;
 
 exports.tests = function () {

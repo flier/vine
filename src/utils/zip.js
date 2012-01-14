@@ -1,5 +1,5 @@
-define("utils/zip", ["require", "exports", "utils/oop", "utils/blob", "js!zip_inflate", "js!zip_deflate"],
-    function (require, exports, oop, blob) {
+define("utils/zip", ["require", "exports", "utils/blob", "utils/string", "js!zip_inflate", "js!zip_deflate"],
+    function (require, exports, blob) {
 
 zip_read_buff = function (buff, offset, n) {
     for(var i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
