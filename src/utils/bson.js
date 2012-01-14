@@ -109,101 +109,118 @@ BSON.inherit(blob.Binary).extend({
 
         return stop - start;
     },
+    writeNumber: function (name, value) {
+        if (this.isInteger(value)) {
+            if ((value < MIN_INT) ||(MAX_INT < value)) {
+                this.put(INT64_TYPE);
+                this.writeCString(name);
+                this.writeLong(long.Long.fromNumber(value));
+            } else {
+                this.put(INT32_TYPE);
+                this.writeCString(name);
+                this.writeInt(value);
+            }
+        } else {
+            this.put(FLOAT_TYPE);
+            this.writeCString(name);
+            this.writeDouble(value);
+        }
+    },
+    writeBoolean: function (name, value) {
+        this.put(BOOLEAN_TYPE);
+        this.writeCString(name);
+        this.put(value ? TRUE : FALSE);
+    },
     writeElement: function (name, value) {
-        switch (typeof value) {
-            case 'string': {
-                this.put(STRING_TYPE);
-                this.writeCString(name);
-                this.writeString(value);
-                break;
-            }
-            case 'function': {
-                if (value.scope) {
-                    this.put(CODE_WITH_SCOPE_TYPE);
+        if (value instanceof RegExp) {
+            // RegExp should be a object, but it is a function in Nitro/V8
+            this.put(REG_EXP_TYPE);
+            this.writeCString(name);
+            this.writeCString(value.source);
+            this.writeCString((value.global ? 'g' : '') + (value.ignoreCase ? 'i' : '') + (value.multiline ? 'm' : ''));
+        } else {
+            switch (typeof value) {
+                case 'string': {
+                    this.put(STRING_TYPE);
                     this.writeCString(name);
+                    this.writeString(value);
+                    break;
+                }
+                case 'function': {
+                    if (value.scope) {
+                        this.put(CODE_WITH_SCOPE_TYPE);
+                        this.writeCString(name);
 
-                    var off = this.offset;
-                    this.writeInt(0);
-                    this.writeString(value.toString());
-                    this.serialize(value.scope);
-                    off = this.seek(off);
-                    this.writeInt(off - this.offset);
-                    this.seek(off);
-                } else {
-                    this.put(CODE_TYPE);
-                    this.writeCString(name);
-                    this.writeString(value.toString());
-                }
-                break;
-            }
-            case 'number': {
-                if (this.isInteger(value)) {
-                    if ((value < MIN_INT) ||(MAX_INT < value)) {
-                        this.put(INT64_TYPE);
-                        this.writeCString(name);
-                        this.writeLong(long.Long.fromNumber(value));
+                        var off = this.offset;
+                        this.writeInt(0);
+                        this.writeString(value.toString());
+                        this.serialize(value.scope);
+                        off = this.seek(off);
+                        this.writeInt(off - this.offset);
+                        this.seek(off);
                     } else {
-                        this.put(INT32_TYPE);
+                        this.put(CODE_TYPE);
                         this.writeCString(name);
-                        this.writeInt(value);
+                        this.writeString(value.toString());
                     }
-                } else {
-                    this.put(FLOAT_TYPE);
-                    this.writeCString(name);
-                    this.writeDouble(value);
+                    break;
                 }
-                break;
-            }
-            case 'undefined': {
-                this.put(UNDEFINED_TYPE);
-                this.writeCString(name);
-                break;
-            }
-            case 'boolean': {
-                this.put(BOOLEAN_TYPE);
-                this.writeCString(name);
-                this.put(value ? TRUE : FALSE);
-                break;
-            }
-            case 'object': {
-                if (value === null) {
-                    this.put(NULL_TYPE);
-                    this.writeCString(name);
-                } else if (value instanceof long.Long) {
-                    this.put(value instanceof ts.Timestamp ? TIMESTAMP_TYPE : INT64_TYPE);
-                    this.writeCString(name);
-                    this.writeLong(value);
-                } else if (value instanceof oid.ObjectId) {
-                    this.put(OBJECT_ID_TYPE);
-                    this.writeCString(name);
-                    this.writeBytes(value.bytes);
-                } else if (value instanceof oid.DatabaseRef) {
-                    this.put(DB_REF_TYPE);
-                    this.writeCString(name);
-                    this.writeString(value.name);
-                    this.writeBytes(value.oid.bytes);
-                } else if (value instanceof RegExp) {
-                    this.put(REG_EXP_TYPE);
-                    this.writeCString(name);
-                    this.writeCString(value.source);
-                    this.writeCString((value.global ? 'g' : '') + (value.ignoreCase ? 'i' : '') + (value.multiline ? 'm' : ''));
-                } else if (value instanceof Date) {
-                    this.put(DATE_TIME_TYPE);
-                    this.writeCString(name);
-                    this.writeLong(long.Long.fromNumber(value.getTime()));
-                } else if (Array.isArray(value)) {
-                    this.put(ARRAY_TYPE);
-                    this.writeCString(name);
-                    this.serialize(value);
-                } else {
-                    this.put(EMBEDDED_DOCUMENT_TYPE);
-                    this.writeCString(name);
-                    this.serialize(value);
+                case 'number': {
+                    this.writeNumber(name, value);
+                    break;
                 }
-                break;
-            }
-            default: {
-                throw new Error("Unrecognized object type: " + typeof value)
+                case 'undefined': {
+                    this.put(UNDEFINED_TYPE);
+                    this.writeCString(name);
+                    break;
+                }
+                case 'boolean': {
+                    this.writeBoolean(name, value);
+                    break;
+                }
+                case 'object': {
+                    if (value === null) {
+                        this.put(NULL_TYPE);
+                        this.writeCString(name);
+                    } else if (value instanceof String) {
+                        this.put(STRING_TYPE);
+                        this.writeCString(name);
+                        this.writeString(value);
+                    } else if (value instanceof Number) {
+                        this.writeNumber(name, value);
+                    } else if (value instanceof Boolean) {
+                        this.writeBoolean(name, value);
+                    } else if (value instanceof long.Long) {
+                        this.put(value instanceof ts.Timestamp ? TIMESTAMP_TYPE : INT64_TYPE);
+                        this.writeCString(name);
+                        this.writeLong(value);
+                    } else if (value instanceof oid.ObjectId) {
+                        this.put(OBJECT_ID_TYPE);
+                        this.writeCString(name);
+                        this.writeBytes(value.bytes);
+                    } else if (value instanceof oid.DatabaseRef) {
+                        this.put(DB_REF_TYPE);
+                        this.writeCString(name);
+                        this.writeString(value.name);
+                        this.writeBytes(value.oid.bytes);
+                    } else if (value instanceof Date) {
+                        this.put(DATE_TIME_TYPE);
+                        this.writeCString(name);
+                        this.writeLong(long.Long.fromNumber(value.getTime()));
+                    } else if (Array.isArray(value)) {
+                        this.put(ARRAY_TYPE);
+                        this.writeCString(name);
+                        this.serialize(value);
+                    } else {
+                        this.put(EMBEDDED_DOCUMENT_TYPE);
+                        this.writeCString(name);
+                        this.serialize(value);
+                    }
+                    break;
+                }
+                default: {
+                    throw new Error("Unrecognized object type: " + typeof value)
+                }
             }
         }
     },
@@ -408,9 +425,12 @@ exports.tests = function () {
             i: 123456789,
             l: long.Long.MAX_VALUE,
             f: 3.1415926,
+            f1: new Number(3.1415926),
             s: 'test',
+            s1: new String('test'),
             r: /test/g,
             b: true,
+            b1: new Boolean(false),
             u: undefined,
             n: null,
             hello: function (name) { return 'hello ' + name; },
@@ -431,11 +451,14 @@ exports.tests = function () {
         equals(obj.i, 123456789, "int");
         ok(obj.l.equals(long.Long.MAX_VALUE), "long");
         equals(obj.f, 3.1415926, "number");
+        equals(obj.f1, 3.1415926, "Number()");
         equals(obj.s, 'test', "string");
+        equals(obj.s1, 'test', "String()");
         equals(obj.r.source, 'test', "regex");
         ok(obj.r.global);
         ok(!obj.r.ignoreCase);
         ok(obj.b, "boolean");
+        ok(obj.b1, "Boolean()");
         equals(obj.u, undefined, "undefined");
         equals(obj.hello('flier'), 'hello flier');
         equals(obj.hello_flier(), 'hello flier');
