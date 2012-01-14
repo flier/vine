@@ -68,6 +68,13 @@ var INT64_TYPE             = 0x12;
 var MIN_KEY                = 0xFF;
 var MAX_KEY                = 0x7F;
 
+var BINARY_GENERIC_SUBTYPE      = 0x00;
+var BINARY_FUNCTION_SUBTYPE     = 0x01;
+var BINARY_OLD_SUBTYPE          = 0x02;
+var BINARY_UUID_SUBTYPE         = 0x03;
+var BINARY_MD5_SUBTYPE          = 0x05;
+var BINARY_USER_DEFINED_SUBTYPE = 0x80;
+
 var NULL = 0;
 var TRUE = 1;
 var FALSE = 0;
@@ -207,6 +214,12 @@ BSON.inherit(blob.Binary).extend({
                         this.writeCString(name);
                         this.writeString(value.name);
                         this.writeBytes(value.oid.bytes);
+                    } else if (value instanceof blob.Binary) {
+                        this.put(BINARY_TYPE);
+                        this.writeCString(name);
+                        this.writeInt(value.length);
+                        this.put(value.subtype || BINARY_GENERIC_SUBTYPE);
+                        this.writeBytes(value.toArray());
                     } else if (Array.isArray(value)) {
                         this.put(ARRAY_TYPE);
                         this.writeCString(name);
@@ -378,6 +391,15 @@ BSON.inherit(blob.Binary).extend({
                     obj[name] = this.readEmbeddedObject(true);
                     break;
                 }
+                case BINARY_TYPE:
+                {
+                    var len = this.readInt();
+                    var subtype = this.get();
+                    var bin = blob.Binary.fromArray(this.readBytes(len));
+                    bin.subtype = subtype;
+                    obj[name] = bin;
+                    break;
+                }
                 case OBJECT_ID_TYPE:
                 {
                     obj[name] = new oid.ObjectId(this.readBytes(12));
@@ -440,7 +462,8 @@ exports.tests = function () {
             },
             oid: new oid.ObjectId([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
             db: new oid.DatabaseRef('test', new oid.ObjectId()),
-            ts: new ts.Timestamp(123)
+            ts: new ts.Timestamp(123),
+            bin: blob.Binary.alloc(16)
         }) > 0, "serialize");
 
         bson.reset();
@@ -463,9 +486,14 @@ exports.tests = function () {
         equals(obj.hello_flier(), 'hello flier');
         equals(obj.n, null, "null");
         equals(obj.o.a, 1, "object");
+        ok(obj.oid instanceof oid.ObjectId);
         equals(obj.oid.toString(), '000102030405060708090a0b', "ObjectId");
+        ok(obj.db instanceof oid.DatabaseRef);
         equals(obj.db.name, "test", "DatabaseRef");
+        ok(obj.ts instanceof ts.Timestamp);
         equals(obj.ts.steps(), 123, "Timestamp");
+        ok(obj.bin instanceof blob.Binary);
+        equals(obj.bin.length, 16, "Binary");
     });
 };
 

@@ -15,6 +15,18 @@ Binary.alloc = function (len) {
     return new Binary(Binary.getBuffer(len), 0, len);
 };
 
+Binary.fromArray = function (arr) {
+    var bin = Binary.alloc(arr.length);
+
+    for (var i=0; i<arr.length; i++) {
+        bin.put(arr[i]);
+    }
+
+    bin.reset();
+
+    return bin;
+};
+
 Binary.extend({
     seek: function (off) {
         var cur = this.offset;
@@ -44,6 +56,15 @@ Binary.extend({
         bin.reset();
 
         return bin;
+    },
+    toArray: function () {
+        var result = [];
+
+        for (var i=this.offset; i<this.length; i++) {
+            result.push(this.get());
+        }
+
+        return result;
     },
     writeBytes: function (bytes) {
         for (var i=0; i<bytes.length; i++) {
