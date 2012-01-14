@@ -57,21 +57,30 @@ Binary.extend({
 
         return bin;
     },
-    toArray: function () {
+    toArray: function (begin, end) {
+        if (begin == undefined)
+            begin = this.offset;
+
+        if (end == undefined)
+            end = this.length;
+
         var result = [];
 
-        for (var i=this.offset; i<this.length; i++) {
-            result.push(this.get());
+        for (var i=begin; i<end; i++) {
+            result.push(this.get(i));
         }
 
         return result;
     },
-    writeBytes: function (bytes) {
-        for (var i=0; i<bytes.length; i++) {
+    writeBytes: function (bytes, len) {
+        if (len == undefined)
+            len = bytes.length;
+
+        for (var i=0; i<len; i++) {
             this.put(bytes[i]);
         }
 
-        return bytes.length;
+        return len;
     },
     readBytes: function (count) {
         var bytes = new Array(count);

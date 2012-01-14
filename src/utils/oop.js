@@ -28,11 +28,19 @@ Function.prototype.extend = function (props) {
     return this;
 };
 
-exports.getClassName = function (obj) {
+var getClassName = function (obj) {
     var name = Object.prototype.toString.call(obj).slice(1, -1);
 
     return name.substr(name.indexOf(' ')+1);
-}
+};
+
+String.extend({
+    isString:  function (obj) {
+        return getClassName(obj) == 'String';
+    }
+})
+
+exports.getClassName = getClassName;
 
 exports.tests = function () {
     module("OOP Utils");
