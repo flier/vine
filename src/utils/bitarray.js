@@ -2,6 +2,7 @@ define("utils/bitarray", ["require", "exports", "utils/oop", "api/list"], functi
 
 var BITS_SHIFT = 5; // or 64bit?
 var BITS_MASK = (1 << BITS_SHIFT) - 1;
+var ELEMENT_MASK = 0xFFFFFFFF;
 
 var BitArray = function (size, array) {
     this.buffer = array || new Array((size + BITS_MASK) >> BITS_SHIFT).fill(0);
@@ -83,6 +84,43 @@ BitArray.extend({
         }
 
         return total;
+    },
+    not: function () {
+        for (var i=0; i<this.buffer.length; i++) {
+            this.buffer[i] = ~this.buffer[i] & ELEMENT_MASK;
+        }
+
+        return this;
+    },
+    or: function (mask) {
+        if (this.buffer.length != mask.buffer.length)
+            throw new Error("Arguments must be of the same length.");
+
+        for (var i=0; i<this.buffer.length; i++) {
+            this.buffer[i] |= mask.buffer[i];
+        }
+
+        return this;
+    },
+    and: function (mask) {
+        if (this.buffer.length != mask.buffer.length)
+            throw new Error("Arguments must be of the same length.");
+
+        for (var i=0; i<this.buffer.length; i++) {
+            this.buffer[i] &= mask.buffer[i];
+        }
+
+        return this;
+    },
+    xor: function (mask) {
+        if (this.buffer.length != mask.buffer.length)
+            throw new Error("Arguments must be of the same length.");
+
+        for (var i=0; i<this.buffer.length; i++) {
+            this.buffer[i] ^= mask.buffer[i];
+        }
+
+        return this;
     }
 });
 
@@ -129,6 +167,37 @@ exports.tests = function () {
 
         equals(b.count(), 0, "clear");
         ok(!b.equals(b2), "equals");
+
+        b = b2.clone();
+
+        ok(b.get(33));
+        ok(!b.not().get(33), "not");
+
+        var mask = new BitArray(2, [1<<6, 0]);
+
+        b = b2.clone();
+
+        ok(!b.get(6));
+        ok(b.or(mask).get(6), "or");
+
+        mask.not();
+
+        ok(b.get(5));
+
+        b.and(mask);
+
+        ok(b.get(5), "and");
+        ok(!b.get(6), "and");
+
+        mask.clear();
+
+        mask.set(5, true);
+        mask.set(6, true);
+
+        b.xor(mask);
+
+        ok(!b.get(5), "xor");
+        ok(b.get(6), "xor");
     });
 };
 
