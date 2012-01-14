@@ -66,8 +66,8 @@ Set.extend({
 
         return this.items[idx];
     },
-    each: function (callback /* (index, value) */) {
-        return this.items.each(callback);
+    forEach: function (callback /* (value, index, set) */) {
+        return this.items.forEach(callback);
     },
 
     _collect: function (args) {
@@ -161,11 +161,11 @@ exports.tests = function () {
 
         var sum = 0;
 
-        new Set([1, 2, 3]).each(function (idx, value) {
+        new Set([1, 2, 3]).forEach(function (value) {
             sum += value;
         });
 
-        equals(sum, 6, "each()");
+        equals(sum, 6, "forEach()");
     });
 
     test("interop set operation", function () {

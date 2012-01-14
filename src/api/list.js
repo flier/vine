@@ -73,15 +73,109 @@ Array.extend({
     },
     clone: function () {
         return this.slice(0);
-    },
-    each: function (callback /* (index, value) */) {
-        for (var i=0; i<this.length; i++) {
-            var ret = callback(i, this[i])
-
-            if (ret) return ret;
-        }
     }
 });
+
+// Add ECMA262-5 Array methods if not supported natively
+//
+if (!('indexOf' in Array.prototype)) {
+    Array.prototype.indexOf= function(find, i /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        if (i===undefined) i= 0;
+        if (i<0) i+= this.length;
+        if (i<0) i= 0;
+        for (var n= this.length; i<n; i++)
+            if (i in this && this[i]===find)
+                return i;
+        return -1;
+    };
+}
+if (!('lastIndexOf' in Array.prototype)) {
+    Array.prototype.lastIndexOf= function(find, i /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        if (i===undefined) i= this.length-1;
+        if (i<0) i+= this.length;
+        if (i>this.length-1) i= this.length-1;
+        for (i++; i-->0;) /* i++ because from-argument is sadly inclusive */
+            if (i in this && this[i]===find)
+                return i;
+        return -1;
+    };
+}
+if (!('forEach' in Array.prototype)) {
+    Array.prototype.forEach= function(callback, that /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
+        var obj = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = obj.length >>> 0; // Hack to convert O.length to a UInt32
+
+        // 4. If IsCallable(callback) is false, throw a TypeError exception.
+        // See: http://es5.github.com/#x9.11
+        if (!Function.isFunction(callback))
+            throw new TypeError(callback + " is not a function");
+
+        for (var i= 0; i<len; i++) {
+            if (i in obj) {
+                callback.call(that, obj[i], i, obj);
+            }
+        }
+    };
+}
+if (!('map' in Array.prototype)) {
+    Array.prototype.map= function(mapper, that /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        var other= new Array(this.length);
+        for (var i= 0, n= this.length; i<n; i++)
+            if (i in this)
+                other[i]= mapper.call(that, this[i], i, this);
+        return other;
+    };
+}
+if (!('filter' in Array.prototype)) {
+    Array.prototype.filter= function(filter, that /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        var other= [], v;
+        for (var i=0, n= this.length; i<n; i++)
+            if (i in this && filter.call(that, v= this[i], i, this))
+                other.push(v);
+        return other;
+    };
+}
+if (!('every' in Array.prototype)) {
+    Array.prototype.every= function(tester, that /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        for (var i= 0, n= this.length; i<n; i++)
+            if (i in this && !tester.call(that, this[i], i, this))
+                return false;
+        return true;
+    };
+}
+if (!('some' in Array.prototype)) {
+    Array.prototype.some= function(tester, that /*opt*/) {
+        if (this == null)
+            throw new TypeError("`this` is null or not defined");
+
+        for (var i= 0, n= this.length; i<n; i++)
+            if (i in this && tester.call(that, this[i], i, this))
+                return true;
+        return false;
+    };
+}
 
 exports.tests = function () {
     module("List API");
@@ -110,7 +204,7 @@ exports.tests = function () {
 
         var sum = 0;
 
-        [1, 2, 3].each(function (idx, value) {
+        [1, 2, 3].forEach(function (value) {
             sum += value;
         });
 

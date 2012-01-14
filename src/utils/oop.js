@@ -34,6 +34,28 @@ var getClassName = function (obj) {
     return name.substr(name.indexOf(' ')+1);
 };
 
+Function.isFunction = function (obj) {
+    return getClassName(obj) == 'Function';
+};
+
+// Add ECMA262-5 method binding if not supported natively
+//
+if (!('bind' in Function.prototype)) {
+    Function.prototype.bind= function(owner) {
+        var that= this;
+        if (arguments.length<=1) {
+            return function() {
+                return that.apply(owner, arguments);
+            };
+        } else {
+            var args= Array.prototype.slice.call(arguments, 1);
+            return function() {
+                return that.apply(owner, arguments.length===0? args : args.concat(Array.prototype.slice.call(arguments)));
+            };
+        }
+    };
+}
+
 exports.getClassName = getClassName;
 
 exports.tests = function () {
@@ -60,6 +82,19 @@ exports.tests = function () {
 
         equals(c.name(), "cat", "super.method");
         equals(c.hello(), "hello from cat", "extend method");
+
+        equals(getClassName('test'), 'String');
+        equals(getClassName(new String('test')), 'String');
+        equals(getClassName(123), 'Number');
+        equals(getClassName(new Number(123)), 'Number');
+        equals(getClassName(true), 'Boolean');
+        equals(getClassName(new Boolean(true)), 'Boolean');
+        equals(getClassName(function () {}), 'Function');
+        equals(getClassName(/test/), 'RegExp');
+        equals(getClassName(new RegExp('test')), 'RegExp');
+        equals(getClassName({}), 'Object');
+        equals(getClassName([]), 'Array');
+        equals(getClassName(new Array()), 'Array');
     });
 };
 

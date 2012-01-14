@@ -39,13 +39,21 @@ Dict.inherit(Object).extend({
             delete this[props[i]];
         }
     },
-    each: function (callback /* key, value */) {
+    forEach: function (callback /* (value, key, dict) */, that /*opt*/) {
+        if (this == null) {
+            throw new TypeError("`this` is null or not defined");
+        }
+
+        var obj = Object(this);
+
+        if ({}.toString.call(callback) != "[object Function]") {
+            throw new TypeError(callback + " is not a function");
+        }
+
         var props = Object.getOwnPropertyNames(this);
 
         for (var i=0; i<props.length; i++) {
-            var ret = callback(props[i], this[props[i]]);
-
-            if (ret) return ret;
+            callback.call(that, this[props[i]], props[i], this);
         }
     },
     clone: function () {
@@ -95,7 +103,7 @@ exports.tests = function () {
 
         var sum = 0;
 
-        new Dict({ a: 1, b: 2, c: 3 }).each(function (k, v) {
+        new Dict({ a: 1, b: 2, c: 3 }).forEach(function (v) {
             sum += v;
         });
 
