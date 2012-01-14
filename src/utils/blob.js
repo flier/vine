@@ -18,7 +18,7 @@ Binary.alloc = function (len) {
 Binary.fromArray = function (arr) {
     var bin = Binary.alloc(arr.length);
 
-    for (var i=0; i<arr.length; i++) {
+    for (var i=0, len=arr.length; i<len; i++) {
         bin.put(arr[i]);
     }
 
@@ -94,7 +94,7 @@ Binary.extend({
     writeUtf8String: function (str) {
         var idx = 0;
 
-        for (var i=0; i<str.length; i++) {
+        for (var i=0, len=str.length; i<len; i++) {
             var c = str.charCodeAt(i);
 
             if (c < 128) {
@@ -116,7 +116,7 @@ Binary.extend({
     readUtf8String: function (len) {
         var chars = [];
 
-        for (var i=0; i<(len || this.length); i++) {
+        for (var i=0, n=len || this.length; i<n; i++) {
             var c = this.get(i);
 
             if ((c & 224) == 224) {
@@ -170,7 +170,7 @@ Binary.extend({
     writeInt: function (/* num, num, ... */) {
         var idx = 0;
 
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             var arg = arguments[i];
             var num = arg instanceof Number ? arg : parseInt(arg);
 
@@ -205,7 +205,7 @@ Binary.extend({
         return num % 1 == 0;
     },
     writeLong: function (/* num, num, ... */) {
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             var arg = arguments[i];
 
             var num;
@@ -239,7 +239,7 @@ Binary.extend({
         }
     },
     writeDouble: function (/* num, num, ... */) {
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             var arg = arguments[i];
             var num = arg instanceof Number ? arg : parseFloat(arg);
 

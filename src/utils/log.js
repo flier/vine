@@ -138,7 +138,7 @@ Logger.extend({
     log: function (level, msg, args) {
         var record = new LogRecord(this, level, msg, args);
 
-        for (var i=0; i<this.handlers.length; i++) {
+        for (var i=0, len=this.handlers.length; i<len; i++) {
             this.handlers[i].handle(record);
         }
     },

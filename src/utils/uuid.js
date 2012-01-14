@@ -83,7 +83,7 @@ define("utils/uuid", ["require", "exports"], function (require, exports) {
     function hex(buf, offset) {
         var bytes = [];
 
-        for (var i=offset || 0; i<buf.length; i++) {
+        for (var i=offset || 0, len=buf.length; i<len; i++) {
             bytes.push(_byteToHex[buf[i]]);
         }
 

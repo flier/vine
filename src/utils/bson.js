@@ -97,7 +97,7 @@ BSON.inherit(blob.Binary).extend({
         this.writeInt(0);
 
         if (Array.isArray(obj)) {
-            for (var i=0; i<obj.length; i++) {
+            for (var i=0, len=obj.length; i<len; i++) {
                 this.writeElement(i, obj[i]);
             }
         } else {

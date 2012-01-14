@@ -40,7 +40,7 @@ BitArray.extend({
         return this;
     },
     clear: function () {
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             this.buffer[i] = 0;
         }
     },
@@ -56,7 +56,7 @@ BitArray.extend({
     toByteArray: function () {
         var bytes = new Array(this.buffer.length * BitArray.BYTES_PER_ELEMENT);
 
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             for (var j=0; j<BitArray.BYTES_PER_ELEMENT; j++) {
                 bytes[BitArray.BYTES_PER_ELEMENT*i+j] = (this.buffer[i] >> (8*j)) & 0xFF;
             }
@@ -70,7 +70,7 @@ BitArray.extend({
     count: function () {
         var total = 0;
 
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             var x = this.buffer[i];
 
             // http://bits.stephan-brumme.com/countBits.html
@@ -86,7 +86,7 @@ BitArray.extend({
         return total;
     },
     not: function () {
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             this.buffer[i] = ~this.buffer[i] & ELEMENT_MASK;
         }
 
@@ -96,7 +96,7 @@ BitArray.extend({
         if (this.buffer.length != mask.buffer.length)
             throw new Error("Arguments must be of the same length.");
 
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             this.buffer[i] |= mask.buffer[i];
         }
 
@@ -106,7 +106,7 @@ BitArray.extend({
         if (this.buffer.length != mask.buffer.length)
             throw new Error("Arguments must be of the same length.");
 
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             this.buffer[i] &= mask.buffer[i];
         }
 
@@ -116,7 +116,7 @@ BitArray.extend({
         if (this.buffer.length != mask.buffer.length)
             throw new Error("Arguments must be of the same length.");
 
-        for (var i=0; i<this.buffer.length; i++) {
+        for (var i=0, len=this.buffer.length; i<len; i++) {
             this.buffer[i] ^= mask.buffer[i];
         }
 

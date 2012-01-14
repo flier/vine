@@ -5,7 +5,7 @@ var Dict = function (obj) {
 
     var props = Object.getOwnPropertyNames(obj);
 
-    for (var i=0; i<props.length; i++) {
+    for (var i=0, len=props.length; i<len; i++) {
         var prop = props[i];
 
         this[prop] = obj[prop];
@@ -23,7 +23,7 @@ Dict.inherit(Object).extend({
         var props = Object.getOwnPropertyNames(this);
         var values = [];
 
-        for (var i=0; i<props.length; i++) {
+        for (var i=0, len=props.length; i<len; i++) {
             values.push(this[props[i]]);
         }
 
@@ -35,7 +35,7 @@ Dict.inherit(Object).extend({
     clear: function () {
         var props = Object.getOwnPropertyNames(this);
 
-        for (var i=0; i<props.length; i++) {
+        for (var i=0, len=props.length; i<len; i++) {
             delete this[props[i]];
         }
     },
@@ -61,7 +61,7 @@ Dict.inherit(Object).extend({
 
         var props = Object.getOwnPropertyNames(this);
 
-        for (var i=0; i<props.length; i++) {
+        for (var i=0, len=props.length; i<len; i++) {
             var name = props[i];
 
             if (name == 'clone') return;

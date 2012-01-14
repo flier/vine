@@ -155,7 +155,7 @@ exports.Long.fromString = function(str, opt_radix) {
   var radixToPower = exports.Long.fromNumber(Math.pow(radix, 8));
 
   var result = exports.Long.ZERO;
-  for (var i = 0; i < str.length; i += 8) {
+  for (var i = 0, len = str.length; i < len; i += 8) {
     var size = Math.min(8, str.length - i);
     var value = parseInt(str.substring(i, i + size), radix);
     if (size < 8) {

@@ -11,7 +11,7 @@ Array.extend({
         if (!this || !list) return false;
         if (this.length != list.length) return false;
 
-        for (var i=0; i<this.length; i++) {
+        for (var i=0, len=this.length; i<len; i++) {
             if (this[i] != list[i]) return false;
         }
 
@@ -71,7 +71,7 @@ Array.extend({
         return this.slice(0);
     },
     fill: function (value) {
-        for (var i=0; i<this.length; i++) {
+        for (var i=0, len=this.length; i<len; i++) {
             this[i] = value;
         }
         return this;

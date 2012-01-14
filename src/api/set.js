@@ -7,7 +7,7 @@ var Set = function (set_or_array) {
         this.items = [];
 
         if (set_or_array instanceof Array) {
-            for (var i=0; i<set_or_array.length; i++) {
+            for (var i=0, len=set_or_array.length; i<len; i++) {
                 this.add(set_or_array[i]);
             }
         }
@@ -24,7 +24,7 @@ Set.extend({
     add: function (/* value, value, ... */) {
         var added = 0;
 
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             if (this.items.indexOf(arguments[i]) < 0) {
                 this.items.push(arguments[i]);
                 added++;
@@ -36,7 +36,7 @@ Set.extend({
     remove: function (/* value, value, ... */) {
         var removed = 0;
 
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             var idx = this.items.indexOf(arguments[i]);
 
             if (idx >= 0) {
@@ -49,7 +49,7 @@ Set.extend({
         return removed;
     },
     contains: function (/* value, value, ... */) {
-        for (var i=0; i<arguments.length; i++) {
+        for (var i=0, len=arguments.length; i<len; i++) {
             if (this.items.indexOf(arguments[i]) < 0) {
                 return false;
             }
@@ -73,7 +73,7 @@ Set.extend({
     _collect: function (args) {
         var items = this.items.clone();
 
-        for (var i=0; i<args.length; i++) {
+        for (var i=0, len=args.length; i<len; i++) {
             var set = args[i] instanceof Set ? args[i] : new Set(args[i]);
 
             Array.prototype.push.apply(items, set.items.clone());
@@ -105,7 +105,7 @@ Set.extend({
         var value, count=0;
         var set = new Set();
 
-        for (var i=0; i<items.length; i++) {
+        for (var i=0, len=items.length; i<len; i++) {
             if (items[i] != value) {
                 if (count == arguments.length+1) {
                     set.add(value);
@@ -127,7 +127,7 @@ Set.extend({
         var dst = arguments[0];
         var moved = 0;
 
-        for (var i=1; i<arguments.length; i++) {
+        for (var i=1, len=arguments.length; i<len; i++) {
             if (this.remove(arguments[i]) > 0) {
                 dst.add(arguments[i]);
                 moved++;

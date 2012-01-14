@@ -2,7 +2,7 @@ define("utils/zip", ["require", "exports", "utils/blob", "utils/string", "js!zip
     function (require, exports, blob) {
 
 zip_read_buff = function (buff, offset, n) {
-    for(var i = 0; i < n && zip_deflate_pos < zip_deflate_data.length; i++)
+    for(var i = 0, len = zip_deflate_data.length; i < n && zip_deflate_pos < len; i++)
         buff[offset + i] = zip_deflate_data[zip_deflate_pos++] & 0xff;
 
     return i;
@@ -67,7 +67,7 @@ blob.Binary.extend({
 
         var bin = blob.Binary.alloc(size);
 
-        for (var i=0; i<chunks.length; i++) {
+        for (var i=0, len=chunks.length; i<len; i++) {
             bin.writeBytes(chunks[i]);
         }
 
