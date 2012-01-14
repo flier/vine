@@ -211,7 +211,6 @@ BSON.inherit(blob.Binary).extend({
                         this.put(ARRAY_TYPE);
                         this.writeCString(name);
                         this.serialize(value);
-
                     } else {
                         this.put(EMBEDDED_DOCUMENT_TYPE);
                         this.writeCString(name);
