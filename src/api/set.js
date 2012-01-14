@@ -25,7 +25,7 @@ Set.extend({
         var added = 0;
 
         for (var i=0; i<arguments.length; i++) {
-            if (this.items.find(arguments[i]) < 0) {
+            if (this.items.indexOf(arguments[i]) < 0) {
                 this.items.push(arguments[i]);
                 added++;
             }
@@ -37,7 +37,7 @@ Set.extend({
         var removed = 0;
 
         for (var i=0; i<arguments.length; i++) {
-            var idx = this.items.find(arguments[i]);
+            var idx = this.items.indexOf(arguments[i]);
 
             if (idx >= 0) {
                 this.items.splice(idx, 1);
@@ -50,7 +50,7 @@ Set.extend({
     },
     contains: function (/* value, value, ... */) {
         for (var i=0; i<arguments.length; i++) {
-            if (this.items.find(arguments[i]) < 0) {
+            if (this.items.indexOf(arguments[i]) < 0) {
                 return false;
             }
         }

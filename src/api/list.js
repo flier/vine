@@ -15,12 +15,6 @@ Array.extend({
 
         return true;
     },
-    find: function (value) {
-        for (var i=0; i<this.length; i++) {
-            if (this[i] == value) return i;
-        }
-        return -1;
-    },
     insert: function (/* value, value, ... */) {
         var args = Array.prototype.slice.call(arguments);
 
@@ -194,8 +188,8 @@ exports.tests = function () {
 
         ok([1, 2, 3, 4].trim(1, -1).equals([2, 3]), "trim(1, -1)");
 
-        equals(l.find(3), 2, "find(3)");
-        equals(l.find(4), -1, "!find(4)");
+        equals(l.indexOf(3), 2, "find(3)");
+        equals(l.indexOf(4), -1, "!find(4)");
 
         equals(l.insert(1, 4, 5), 5, "insert(1, 4, 5)");
         ok(l.equals([1, 4, 5, 2, 3]), "equals([1, ...])");
