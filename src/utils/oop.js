@@ -28,6 +28,12 @@ Function.prototype.extend = function (props) {
     return this;
 };
 
+exports.getClassName = function (obj) {
+    var name = Object.prototype.toString.call(obj).slice(1, -1);
+
+    return name.substr(name.indexOf(' ')+1);
+}
+
 exports.tests = function () {
     module("OOP Utils");
 

@@ -1,5 +1,5 @@
 define("utils/bson", ["require", "exports", "utils/blob", "api/long", "api/oid", "api/timestamp", "utils/oop", "utils/string"],
-    function (require, exports, blob, long, oid, ts) {
+    function (require, exports, blob, long, oid, ts, oop) {
 
 /**
  *  BSON is a binary format in which zero or more key/value pairs are stored as a single entity.
@@ -109,88 +109,92 @@ BSON.inherit(blob.Binary).extend({
 
         return stop - start;
     },
-    writeNumber: function (name, value) {
-        if (this.isInteger(value)) {
-            if ((value < MIN_INT) ||(MAX_INT < value)) {
-                this.put(INT64_TYPE);
-                this.writeCString(name);
-                this.writeLong(long.Long.fromNumber(value));
-            } else {
-                this.put(INT32_TYPE);
-                this.writeCString(name);
-                this.writeInt(value);
-            }
-        } else {
-            this.put(FLOAT_TYPE);
-            this.writeCString(name);
-            this.writeDouble(value);
-        }
-    },
-    writeBoolean: function (name, value) {
-        this.put(BOOLEAN_TYPE);
-        this.writeCString(name);
-        this.put(value ? TRUE : FALSE);
-    },
     writeElement: function (name, value) {
-        if (value instanceof RegExp) {
-            // RegExp should be a object, but it is a function in Nitro/V8
-            this.put(REG_EXP_TYPE);
-            this.writeCString(name);
-            this.writeCString(value.source);
-            this.writeCString((value.global ? 'g' : '') + (value.ignoreCase ? 'i' : '') + (value.multiline ? 'm' : ''));
-        } else {
-            switch (typeof value) {
-                case 'string': {
-                    this.put(STRING_TYPE);
-                    this.writeCString(name);
-                    this.writeString(value);
-                    break;
-                }
-                case 'function': {
-                    if (value.scope) {
-                        this.put(CODE_WITH_SCOPE_TYPE);
+        switch (oop.getClassName(value)) {
+            case 'Undefined':
+            {
+                this.put(UNDEFINED_TYPE);
+                this.writeCString(name);
+                break;
+            }
+            case 'Null':
+            {
+                this.put(NULL_TYPE);
+                this.writeCString(name);
+                break;
+            }
+            case 'String':
+            {
+                this.put(STRING_TYPE);
+                this.writeCString(name);
+                this.writeString(value);
+                break;
+            }
+            case 'Boolean':
+            {
+                this.put(BOOLEAN_TYPE);
+                this.writeCString(name);
+                this.put(value ? TRUE : FALSE);
+                break;
+            }
+            case 'Number':
+            {
+                if (this.isInteger(value)) {
+                    if ((value < MIN_INT) ||(MAX_INT < value)) {
+                        this.put(INT64_TYPE);
                         this.writeCString(name);
-
-                        var off = this.offset;
-                        this.writeInt(0);
-                        this.writeString(value.toString());
-                        this.serialize(value.scope);
-                        off = this.seek(off);
-                        this.writeInt(off - this.offset);
-                        this.seek(off);
+                        this.writeLong(long.Long.fromNumber(value));
                     } else {
-                        this.put(CODE_TYPE);
+                        this.put(INT32_TYPE);
                         this.writeCString(name);
-                        this.writeString(value.toString());
+                        this.writeInt(value);
                     }
-                    break;
-                }
-                case 'number': {
-                    this.writeNumber(name, value);
-                    break;
-                }
-                case 'undefined': {
-                    this.put(UNDEFINED_TYPE);
+                } else {
+                    this.put(FLOAT_TYPE);
                     this.writeCString(name);
-                    break;
+                    this.writeDouble(value);
                 }
-                case 'boolean': {
-                    this.writeBoolean(name, value);
-                    break;
+                break;
+            }
+            case 'Date':
+            {
+                this.put(DATE_TIME_TYPE);
+                this.writeCString(name);
+                this.writeLong(long.Long.fromNumber(value.getTime()));
+                break;
+            }
+            case 'RegExp':
+            {
+                this.put(REG_EXP_TYPE);
+                this.writeCString(name);
+                this.writeCString(value.source);
+                this.writeCString((value.global ? 'g' : '') + (value.ignoreCase ? 'i' : '') + (value.multiline ? 'm' : ''));
+                break;
+            }
+            case 'Function':
+            {
+                if (value.scope) {
+                    this.put(CODE_WITH_SCOPE_TYPE);
+                    this.writeCString(name);
+
+                    var off = this.offset;
+                    this.writeInt(0);
+                    this.writeString(value.toString());
+                    this.serialize(value.scope);
+                    off = this.seek(off);
+                    this.writeInt(off - this.offset);
+                    this.seek(off);
+                } else {
+                    this.put(CODE_TYPE);
+                    this.writeCString(name);
+                    this.writeString(value.toString());
                 }
-                case 'object': {
-                    if (value === null) {
-                        this.put(NULL_TYPE);
-                        this.writeCString(name);
-                    } else if (value instanceof String) {
-                        this.put(STRING_TYPE);
-                        this.writeCString(name);
-                        this.writeString(value);
-                    } else if (value instanceof Number) {
-                        this.writeNumber(name, value);
-                    } else if (value instanceof Boolean) {
-                        this.writeBoolean(name, value);
-                    } else if (value instanceof long.Long) {
+                break;
+            }
+            default:
+            {
+                if (typeof value == 'object') {
+                    if (value instanceof long.Long) {
                         this.put(value instanceof ts.Timestamp ? TIMESTAMP_TYPE : INT64_TYPE);
                         this.writeCString(name);
                         this.writeLong(value);
@@ -203,24 +207,20 @@ BSON.inherit(blob.Binary).extend({
                         this.writeCString(name);
                         this.writeString(value.name);
                         this.writeBytes(value.oid.bytes);
-                    } else if (value instanceof Date) {
-                        this.put(DATE_TIME_TYPE);
-                        this.writeCString(name);
-                        this.writeLong(long.Long.fromNumber(value.getTime()));
                     } else if (Array.isArray(value)) {
                         this.put(ARRAY_TYPE);
                         this.writeCString(name);
                         this.serialize(value);
+
                     } else {
                         this.put(EMBEDDED_DOCUMENT_TYPE);
                         this.writeCString(name);
                         this.serialize(value);
                     }
-                    break;
-                }
-                default: {
+                } else {
                     throw new Error("Unrecognized object type: " + typeof value)
                 }
+                break;
             }
         }
     },
