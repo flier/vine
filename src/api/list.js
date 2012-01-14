@@ -7,6 +7,8 @@ Array.extend({
         return this.slice(start, stop+1);
     },
     equals: function (list) {
+        if (this === list) return true;
+        if (!this || !list) return false;
         if (this.length != list.length) return false;
 
         for (var i=0; i<this.length; i++) {
@@ -67,6 +69,12 @@ Array.extend({
     },
     clone: function () {
         return this.slice(0);
+    },
+    fill: function (value) {
+        for (var i=0; i<this.length; i++) {
+            this[i] = value;
+        }
+        return this;
     }
 });
 
@@ -182,6 +190,10 @@ exports.tests = function () {
         ok(l.range(-3, 2).equals([1, 2, 3]), "range(-3, 2)");
         ok(l.range(5, 10).equals([]), "range(5, 10)");
 
+        ok(l.equals(l));
+        ok(![].equals(null));
+        ok(![].equals(undefined));
+
         ok([1, 2, 1, 2, 1, 2, 1].remove(2, 1).equals([2, 2, 1, 2, 1]), "remove(2, 1)");
         ok([1, 2, 1, 2, 1, 2, 1].remove(-2, 1).equals([1, 2, 1, 2, 2]), "remove(-2, 1)");
         ok([1, 2, 1, 2, 1, 2, 1].remove(0, 1).equals([2, 2, 2]), "remove(0, 1)");
@@ -203,6 +215,8 @@ exports.tests = function () {
         });
 
         equals(sum, 6, "each()");
+
+        ok([1, 2, 3].fill(5).equals([5, 5, 5]), "fill");
     });
 };
 

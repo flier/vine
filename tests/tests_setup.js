@@ -20,6 +20,7 @@ var TESTING_MODULES = [
     "utils/blob",
     "utils/bson",
     "utils/zip",
+    "utils/bitarray",
     "api/list",
     "api/set",
     "api/dict",
