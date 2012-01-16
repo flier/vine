@@ -18,6 +18,9 @@ Set.extend({
     length: function () {
         return this.items.length;
     },
+    clear: function () {
+        return this.items = [];
+    },
     members: function () {
         return this.items;
     },
@@ -137,6 +140,8 @@ Set.extend({
         return moved;
     }
 });
+
+exports.Set = Set;
 
 exports.tests = function () {
     module("Set API");

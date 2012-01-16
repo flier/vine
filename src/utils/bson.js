@@ -1,4 +1,4 @@
-define("utils/bson", ["require", "exports", "utils/blob", "api/long", "api/oid", "api/timestamp", "utils/oop", "utils/string"],
+define("utils/bson", ["require", "exports", "utils/blob", "api/long", "api/oid", "api/timestamp", "utils/oop", "api/list", "utils/string", "js!json"],
     function (require, exports, blob, long, oid, ts, oop) {
 
 /**
@@ -101,8 +101,10 @@ BSON.inherit(blob.Binary).extend({
                 this.writeElement(i, obj[i]);
             }
         } else {
-            for (var key in obj) {
-                this.writeElement(key, obj[key]);
+            var names = Object.getOwnPropertyNames(obj);
+
+            for (var i=0, len=names.length; i<len; i++) {
+                this.writeElement(names[i], obj[names[i]]);
             }
         }
 
@@ -117,19 +119,14 @@ BSON.inherit(blob.Binary).extend({
         return stop - start;
     },
     writeElement: function (name, value) {
-        switch (oop.getClassName(value)) {
-            case 'Undefined':
-            {
-                this.put(UNDEFINED_TYPE);
-                this.writeCString(name);
-                break;
-            }
-            case 'Null':
-            {
-                this.put(NULL_TYPE);
-                this.writeCString(name);
-                break;
-            }
+        if (value === undefined)
+        {
+            this.put(UNDEFINED_TYPE);
+            this.writeCString(name);
+        } else if (value === null) {
+            this.put(NULL_TYPE);
+            this.writeCString(name);
+        } else switch (oop.getClassName(value)) {
             case 'String':
             {
                 this.put(STRING_TYPE);

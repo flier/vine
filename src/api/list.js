@@ -62,7 +62,7 @@ Array.extend({
         if (start < 0) start += this.length;
         if (stop < 0) stop += this.length;
 
-        this.splice(stop);
+        this.splice(stop, this.length);
         this.splice(0, start);
 
         return this;
@@ -80,6 +80,12 @@ Array.extend({
 
 // Add ECMA262-5 Array methods if not supported natively
 //
+if(!('isArray' in Array.prototype)) {
+    Array.isArray = function (arg) {
+        return Object.prototype.toString.call(arg) == '[object Array]';
+    };
+}
+
 if (!('indexOf' in Array.prototype)) {
     Array.prototype.indexOf= function(find, i /*opt*/) {
         if (this == null)

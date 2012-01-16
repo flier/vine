@@ -1,5 +1,23 @@
 define("utils/oop", ["require", "exports"], function (require, exports) {
 
+if (!('getOwnPropertyNames' in Object)) {
+    Object.getOwnPropertyNames = function (obj) {
+        var names = [];
+
+        for (var name in obj) {
+            if (obj.hasOwnProperty(name)) {
+                names.push(name);
+            }
+        }
+
+        return names;
+    };
+}
+
+if (!('keys' in Object)) {
+    Object.keys = Object.getOwnPropertyNames;
+}
+
 Function.prototype.inherit = function (parent) {
     if (parent.constructor == Function) {
         this.prototype = new parent();

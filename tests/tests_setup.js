@@ -8,7 +8,8 @@ var curl = {
         modernizr: "../lib/modernizr/modernizr.js",
         sprintf: "../lib/sprintf/sprintf-0.7-beta1.js",
         zip_inflate: "../lib/zip/inflate.js",
-        zip_deflate: "../lib/zip/deflate.js"
+        zip_deflate: "../lib/zip/deflate.js",
+        json: "../lib/JSON-js/json2.js"
     }
 };
 
