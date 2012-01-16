@@ -39,10 +39,12 @@ var Log = {
 
             Log.handlers.push(h);
         }
+
+        return this;
     },
 
     getLogger: function (name, level) {
-        var logger = new Logger(name, level || this.level);
+        var logger = new Logger(name, level || Log.level);
 
         logger.handlers = Log.handlers.clone();
 
@@ -171,7 +173,8 @@ Logger.extend({
 });
 
 exports.Level = Level;
-exports.Log = Log;
+exports.basicConfig = Log.basicConfig;
+exports.getLogger = Log.getLogger;
 
 exports.tests = function () {
     module("Log Utils");

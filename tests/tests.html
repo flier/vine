@@ -27,14 +27,23 @@
     <script type="text/javascript">
         require([
             'require',
+            'utils/log',
             'domReady!'
-        ]).then(function (require) {
+        ]).then(function (require, log) {
             QUnit.init({
                 autostart: false
-            })
+            });
+
+            var logger = log.basicConfig({
+                level: log.Level.DEBUG
+            }).getLogger('runner');
+
+            logger.info("loading the test cases...");
 
             require(TESTING_MODULES, function () {
                 for (var i=0; i<arguments.length; i++) {
+                    logger.info("testing %s module...", TESTING_MODULES[i]);
+
                     arguments[i].tests();
                 }
 

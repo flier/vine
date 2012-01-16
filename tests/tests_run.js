@@ -1,11 +1,13 @@
-require(TESTING_MODULES, function () {
+var logger;
+
+require("utils/log", function (log) {
+    logger = log.basicConfig().getLogger('runner');
+
+    logger.info("loading the test cases...");
+}).next(TESTING_MODULES, function () {
     for (var i=0; i<arguments.length; i++) {
-        var ts = new Date();
+        logger.info("testing %s module...", TESTING_MODULES[i]);
 
         arguments[i].tests();
-
-        var msg = "test the " + TESTING_MODULES[i] + " module in " + (new Date().getSeconds() - ts.getSeconds()) + "ms";
-
-        console.log(msg);
     }
 });
