@@ -10,7 +10,16 @@ StorageProvider.create = function (name) {
     return LocalStorageProvider.create(name) || UserDataProvider.create(name);
 };
 
-// https://developer.mozilla.org/en/DOM/Storage
+/**
+ *
+ * https://developer.mozilla.org/en/DOM/Storage
+ *
+ * Note: window.opera.scriptStorage is disabled by default in Opera,
+ *       to enable it go on opera:config#PersistentStorage|UserJSStorageQuota
+ *       and set a quota different from 0 like for example 5120
+ *
+ *       http://www.opera.com/docs/userjs/specs/#scriptstorage
+ */
 
 var LocalStorageProvider = function (name) {
     this.parent.constructor.call(this);
@@ -26,7 +35,7 @@ LocalStorageProvider.create = function () {
 };
 
 LocalStorageProvider.inherit(StorageProvider).extend({
-    length: function () {
+    length: function (callback) {
         var count = 0;
 
         for (var i=0, len=localStorage.length; i<len; i++) {
@@ -36,29 +45,48 @@ LocalStorageProvider.inherit(StorageProvider).extend({
                 count++;
         }
 
+        if (Function.isFunction(callback)) callback.call(this, count);
+
         return count;
     },
-    getKey: function (idx) {
+    getKey: function (idx, callback) {
         if (idx < 0 || localStorage.length <= idx) return undefined;
 
         for (var i=0, len=localStorage.length; i<len; i++) {
             var key = localStorage.key(i);
 
             if (key.indexOf(this.namespace) == 0 && idx--==0)
-                return key.slice(this.namespace.length);
+            {
+                var key = key.slice(this.namespace.length);
+
+                if (Function.isFunction(callback)) callback.call(this, key);
+
+                return key;
+            }
         }
+
+        if (Function.isFunction(callback)) callback.call(this);
+
         return undefined;
     },
-    removeItem: function (key) {
+    removeItem: function (key, callback) {
         localStorage.removeItem(this.namespace + key);
+
+        if (Function.isFunction(callback)) callback.call(this);
     },
-    getItem: function (key) {
-        return localStorage.getItem(this.namespace + key);
+    getItem: function (key, callback) {
+        var item = localStorage.getItem(this.namespace + key);
+
+        if (Function.isFunction(callback)) callback.call(this);
+
+        return item;
     },
-    setItem: function (key, data) {
+    setItem: function (key, data, callback) {
         localStorage.setItem(this.namespace + key, data);
+
+        if (Function.isFunction(callback)) callback.call(this);
     },
-    clear: function () {
+    clear: function (callback) {
         var removing = [];
 
         for (var i=0, len=localStorage.length; i<len; i++) {
@@ -71,6 +99,8 @@ LocalStorageProvider.inherit(StorageProvider).extend({
         for (var i=0, len=removing.length; i<len; i++) {
             localStorage.removeItem(removing[i]);
         }
+
+        if (Function.isFunction(callback)) callback.call(this);
     }
 });
 
@@ -101,30 +131,48 @@ UserDataProvider.create = function (name) {
 };
 
 UserDataProvider.inherit(StorageProvider).extend({
-    length: function () {
-        return this.data.XMLDocument.documentElement.attributes.length;
+    length: function (callback) {
+        var len =  this.data.XMLDocument.documentElement.attributes.length;
+
+        if (Function.isFunction(callback)) callback.call(this, len);
+
+        return len;
     },
-    getKey: function (idx) {
-        return this.data.XMLDocument.documentElement.attributes[idx].name;
+    getKey: function (idx, callback) {
+        var key = this.data.XMLDocument.documentElement.attributes[idx].name;
+
+        if (Function.isFunction(callback)) callback.call(this, key);
+
+        return key;
     },
-    removeItem: function (key) {
+    removeItem: function (key, callback) {
         this.data.removeAttribute(key);
         this.data.save(this.storename);
+
+        if (Function.isFunction(callback)) callback.call(this);
     },
     getItem: function (key) {
-        return this.data.getAttribute(key);
+        var item = this.data.getAttribute(key);
+
+        if (Function.isFunction(callback)) callback.call(this, item);
+
+        return item;
     },
-    setItem: function (key, data) {
+    setItem: function (key, data, callback) {
         this.data.setAttribute(key, data);
         this.data.save(this.storename);
+
+        if (Function.isFunction(callback)) callback.call(this);
     },
-    clear: function () {
+    clear: function (callback) {
         var attrs = this.data.XMLDocument.documentElement.attributes;
 
         for (var i=0, attr; attr = attrs[i]; i++) {
             this.data.removeAttribute(attr.name);
         }
         this.data.save(this.storename);
+
+        if (Function.isFunction(callback)) callback.call(this);
     }
 });
 
