@@ -2,37 +2,13 @@ define("utils/storage", ["require", "exports", "utils/blob", "utils/browser", "a
                          "utils/oop", "js!modernizr"],
     function (require, exports, blob, browser, set) {
 
-var Chunk = function (len) {
-};
-
-Chunk.inherit(blob.Binary).extend({
-
-});
-
 var StorageProvider = function () {
     this.namespace = 'vine';
 };
 
 StorageProvider.create = function (name) {
-    return IndexedDBProvider.create(name) || LocalStorageProvider.create(name) || UserDataProvider.create(name);
-}
-
-// https://developer.mozilla.org/en/IndexedDB
-
-var IndexedDBProvider = function (name) {
-    this.parent.constructor.call(this);
+    return LocalStorageProvider.create(name) || UserDataProvider.create(name);
 };
-
-IndexedDBProvider.isAvailable = function () {
-    return Modernizr.indexeddb;
-};
-IndexedDBProvider.create = function () {
-    return this.isAvailable() ? new IndexedDBProvider() : null;
-};
-
-IndexedDBProvider.inherit(StorageProvider).extend({
-
-});
 
 // https://developer.mozilla.org/en/DOM/Storage
 
@@ -183,12 +159,6 @@ exports.tests = function () {
         ok(exports.provider != null, "create");
         ok(exports.provider instanceof StorageProvider, "create");
     });
-
-    if (IndexedDBProvider.isAvailable()) {
-        test("basic IndexedDBProvider operation", function () {
-            testStorageProvider(IndexedDBProvider);
-        });
-    }
 
     if (LocalStorageProvider.isAvailable()) {
         test("basic LocalStorageProvider operation", function () {
