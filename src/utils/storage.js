@@ -15,18 +15,8 @@ StorageProvider.create = function (name, opts) {
 var WebSqlProvider = function (name, opts) {
     this.parent.constructor.call(this);
 
-    this.tblname = name;
-    this.opts = opts || {};
-
-    if (name != undefined) {
-        this.logger = log.getLogger('websql');
-
-        if (!WebSqlProvider.db) this.prepareDatabase();
-    }
+    if (name) this.init(name, opts);
 };
-
-WebSqlProvider.DEFAULT_SIZE = 5*1024*1024;
-WebSqlProvider.db = null;
 
 WebSqlProvider.isAvailable = function () {
     return Modernizr.websqldatabase;
@@ -36,7 +26,19 @@ WebSqlProvider.create = function (name, opts) {
     return WebSqlProvider.isAvailable() ? new WebSqlProvider(name, opts) : null;
 };
 
+if (WebSqlProvider.isAvailable()) { (function() {
+
+WebSqlProvider.DEFAULT_SIZE = 5*1024*1024;
+WebSqlProvider.db = null;
+
 WebSqlProvider.inherit(StorageProvider).extend({
+    init: function (name, opts) {
+        this.logger = log.getLogger('websql');
+        this.tblname = name;
+        this.opts = opts || {};
+
+        if (!WebSqlProvider.db) this.prepareDatabase();
+    },
     getVersion: function () {
         return this.opts['version'] || '1.0';
     },
@@ -230,6 +232,8 @@ WebSqlProvider.inherit(StorageProvider).extend({
     }
 });
 
+})(); }
+
 /**
  *
  * https://developer.mozilla.org/en/DOM/Storage
@@ -253,6 +257,8 @@ LocalStorageProvider.isAvailable = function () {
 LocalStorageProvider.create = function (name) {
     return LocalStorageProvider.isAvailable() ? new LocalStorageProvider(name) : null;
 };
+
+if (LocalStorageProvider.isAvailable()) { (function() {
 
 LocalStorageProvider.inherit(StorageProvider).extend({
     length: function () {
@@ -318,22 +324,15 @@ LocalStorageProvider.inherit(StorageProvider).extend({
     }
 });
 
+})(); }
+
 // http://msdn.microsoft.com/en-us/library/ms531424(VS.85).aspx
 // https://github.com/marcuswestin/store.js/blob/master/store.js
 
 var UserDataProvider = function (name) {
     this.parent.constructor.call(this);
 
-    this.storename = this.namespace + (name || 'Store');
-
-    this.data = document.createElement('div');
-
-    document.appendChild(this.data);
-
-    this.data.style.display = 'none';
-    this.data.addBehavior('#default#userData');
-
-    this.data.load(this.storename);
+    if (name) this.init(name);
 };
 
 UserDataProvider.isAvailable = function () {
@@ -344,7 +343,21 @@ UserDataProvider.create = function (name) {
     return UserDataProvider.isAvailable() ? new UserDataProvider(name) : null;
 };
 
+if (UserDataProvider.isAvailable()) { (function() {
+
 UserDataProvider.inherit(StorageProvider).extend({
+    init: function (name) {
+        this.storename = this.namespace + (name || 'Store');
+
+        this.data = document.createElement('div');
+
+        document.appendChild(this.data);
+
+        this.data.style.display = 'none';
+        this.data.addBehavior('#default#userData');
+
+        this.data.load(this.storename);
+    },
     length: function () {
         return this.data.XMLDocument.documentElement.attributes.length;
     },
@@ -379,6 +392,8 @@ UserDataProvider.inherit(StorageProvider).extend({
         this.data.save(this.storename);
     }
 });
+
+})(); }
 
 exports.provider = StorageProvider.create();
 
