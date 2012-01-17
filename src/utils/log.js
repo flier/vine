@@ -18,7 +18,7 @@ var Level = {
         'FATAL',
         'NONE'
     ]
-}
+};
 
 var BASIC_FORMAT = "%(levelname)s:%(name)s:%(message)s";
 
@@ -32,7 +32,7 @@ var Log = {
             Log[k] = opts[k];
         }
 
-        if (Log.handlers.length == 0) {
+        if (Log.handlers.length === 0) {
             var h = new ConsoleHandler();
 
             h.formatter = new Formatter(Log.format);
@@ -54,7 +54,7 @@ var Log = {
     getFormatter: function (fmt) {
         return new Formatter(fmt || Log.format);
     }
-}
+};
 
 var LogRecord = function (logger, level, msg, args) {
     this.name = logger.name;
@@ -65,7 +65,7 @@ var LogRecord = function (logger, level, msg, args) {
     this.ts = new Date();
     this.created = this.ts.getTime() / 1000;
     this.asctime = this.ts.toLocaleString();
-}
+};
 
 var Formatter = function (fmt) {
     this.fmt = fmt;
@@ -108,7 +108,7 @@ Handler.extend({
     close: function () {
         // Tidy up any resources used by the handler.
     }
-})
+});
 
 var ConsoleHandler = function () {
 

@@ -81,7 +81,7 @@ var FALSE = 0;
 var MAX_INT = Math.pow(2, 31) - 1;
 var MIN_INT = -Math.pow(2, 31);
 
-var FUNCTION_MATCH = /^\s*function(?:\s+\S+)?\s*\(([^\)]*)\)\s*\{([\s\S]*)\}\s*$/
+var FUNCTION_MATCH = /^\s*function(?:\s+\S+)?\s*\(([^\)]*)\)\s*\{([\s\S]*)\}\s*$/;
 
 var BSON = function (buf, off, len) {
     this.parent.constructor.call(this, buf, off, len);
@@ -246,7 +246,7 @@ BSON.inherit(blob.Binary).extend({
         try {
             var args = [], funcParts = FUNCTION_MATCH.exec(code);
             if (funcParts) {
-                args = funcParts[1].split(',').map(function(name) { return name.trim() })
+                args = funcParts[1].split(',').map(function(name) { return name.trim() });
                 code = funcParts[2]
             }
             if (scope) code = "with("+this.toSource(scope)+"){"+code+"}";
@@ -265,18 +265,18 @@ BSON.inherit(blob.Binary).extend({
      *
      */
     toSource: function(object, filter, indent, startingIndent) {
-        var seen = []
-        return walk(object, filter, indent === undefined ? '  ' : (indent || ''), startingIndent || '')
+        var seen = [];
+        return walk(object, filter, indent === undefined ? '  ' : (indent || ''), startingIndent || '');
 
         function legalKey(key) {
-            var KEYWORD_REGEXP = /^(abstract|boolean|break|byte|case|catch|char|class|const|continue|debugger|default|delete|do|double|else|enum|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|undefined|var|void|volatile|while|with)$/
+            var KEYWORD_REGEXP = /^(abstract|boolean|break|byte|case|catch|char|class|const|continue|debugger|default|delete|do|double|else|enum|export|extends|false|final|finally|float|for|function|goto|if|implements|import|in|instanceof|int|interface|long|native|new|null|package|private|protected|public|return|short|static|super|switch|synchronized|this|throw|throws|transient|true|try|typeof|undefined|var|void|volatile|while|with)$/;
 
-            return /^[a-z_$][0-9a-z_$]*$/gi.test(key) && !KEYWORD_REGEXP.test(key)
+            return /^[a-z_$][0-9a-z_$]*$/gi.test(key) && !KEYWORD_REGEXP.test(key);
         }
 
         function walk(object, filter, indent, currentIndent) {
-            var nextIndent = currentIndent + indent
-            object = filter ? filter(object) : object
+            var nextIndent = currentIndent + indent;
+            object = filter ? filter(object) : object;
             switch (typeof object) {
                 case 'string':
                     return JSON.stringify(object);
@@ -284,7 +284,7 @@ BSON.inherit(blob.Binary).extend({
                 case 'number':
                 case 'function':
                 case 'undefined':
-                    return ''+object
+                    return ''+object;
             }
 
             if (object === null) return 'null';

@@ -18,6 +18,9 @@ if (!('keys' in Object)) {
     Object.keys = Object.getOwnPropertyNames;
 }
 
+// TODO: refactor the inherit and extend with non-intrusive solution
+// ref: http://ejohn.org/blog/simple-javascript-inheritance/
+
 Function.prototype.inherit = function (parent) {
     if (parent.constructor == Function) {
         this.prototype = new parent();
@@ -92,7 +95,7 @@ exports.tests = function () {
             hello: function () {
                 return "hello from " + this.name();
             }
-        })
+        });
 
         var c = new Cat();
 

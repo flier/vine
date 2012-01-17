@@ -33,9 +33,8 @@ BitArray.extend({
     },
     toggle: function (idx) {
         var off = idx >> BITS_SHIFT;
-        var bit = 1 << (idx % (1 << BITS_SHIFT));
 
-        this.buffer[off] ^= bit;
+        this.buffer[off] ^= 1 << (idx % (1 << BITS_SHIFT));
 
         return this;
     },

@@ -40,7 +40,7 @@ Dict.inherit(Object).extend({
         }
     },
     forEach: function (callback /* (value, key, dict) */, that /*opt*/) {
-        if (this == null) {
+        if (this === null) {
             throw new TypeError("`this` is null or not defined");
         }
 

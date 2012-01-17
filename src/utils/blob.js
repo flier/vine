@@ -58,10 +58,10 @@ Binary.extend({
         return bin;
     },
     toArray: function (begin, end) {
-        if (begin == undefined)
+        if (begin === undefined)
             begin = this.offset;
 
-        if (end == undefined)
+        if (end === undefined)
             end = this.length;
 
         var result = [];
@@ -73,7 +73,7 @@ Binary.extend({
         return result;
     },
     writeBytes: function (bytes, len) {
-        if (len == undefined)
+        if (len === undefined)
             len = bytes.length;
 
         for (var i=0; i<len; i++) {
@@ -233,9 +233,7 @@ Binary.extend({
 
             return nums;
         } else {
-            var num = new long.Long(this.readInt(), this.readInt());
-
-            return num;
+            return new long.Long(this.readInt(), this.readInt());
         }
     },
     writeDouble: function (/* num, num, ... */) {
@@ -397,7 +395,7 @@ if (typeof Uint8Array == "function") {
             this.buffer = buf;
             this.byteOffset = off || 0;
             this.byteLength = len || (buf && buf.byteLength) || 0;
-        }
+        };
 
         var Uint8Array = function (buf, off, len) {
             this.parent.constructor.call(this, buf, off, len);

@@ -16,12 +16,12 @@ define("utils/uuid", ["require", "exports"], function (require, exports) {
         var r, b = _rndBytes, i = 0;
 
         for (var i = 0, r; i < 16; i++) {
-            if ((i & 0x03) == 0) r = Math.random() * 0x100000000;
+            if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
             b[i] = r >>> ((i & 0x03) << 3) & 0xff;
         }
 
         return b;
-    }
+    };
 
     // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
     // WebKit only (currently), moderately fast, high quality
@@ -133,13 +133,13 @@ define("utils/uuid", ["require", "exports"], function (require, exports) {
         var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs) / 10000;
 
         // Per 4.2.1.2, Bump clockseq on clock regression
-        if (dt < 0 && options.clockseq == null) {
+        if (dt < 0 && options.clockseq === null) {
             clockseq = clockseq + 1 & 0x3fff;
         }
 
         // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
         // time interval
-        if ((dt < 0 || msecs > _lastMSecs) && options.nsecs == null) {
+        if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === null) {
             nsecs = 0;
         }
 

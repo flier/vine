@@ -135,7 +135,7 @@ exports.Long.fromBits = function(lowBits, highBits) {
  * @return {exports.Long} The corresponding exports.Long value.
  */
 exports.Long.fromString = function(str, opt_radix) {
-  if (str.length == 0) {
+  if (str.length === 0) {
     throw Error('number format error: empty string');
   }
 
@@ -263,7 +263,7 @@ exports.Long.prototype.toNumber = function() {
 /** convert code to JSON **/
 exports.Long.prototype.toJSON = function() {
   return this.toString();
-}
+};
 
 /**
  * @param {number} opt_radix The radix in which the text should be written.

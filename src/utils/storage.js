@@ -23,7 +23,7 @@ WebSqlProvider.isAvailable = function () {
 };
 
 WebSqlProvider.create = function (name, opts) {
-    return WebSqlProvider.isAvailable() ? new WebSqlProvider(name, opts) : null;
+    return !WebSqlProvider.isAvailable() ? null : new WebSqlProvider(name, opts);
 };
 
 if (WebSqlProvider.isAvailable()) { (function() {
@@ -184,7 +184,7 @@ WebSqlProvider.inherit(StorageProvider).extend({
         }, function (results, err) {
             if (Function.isFunction(callback)) {
                 if (results) {
-                    callback.call(this, results.rows.length >= 1 ? results.rows.item(0).value : undefined);
+                    callback.call(this, results.rows.length === 0 ? undefined : results.rows.item(0).value);
                 } else {
                     callback.call(this, undefined, err);
                 }
@@ -255,7 +255,7 @@ LocalStorageProvider.isAvailable = function () {
     return Modernizr.localstorage;
 };
 LocalStorageProvider.create = function (name) {
-    return LocalStorageProvider.isAvailable() ? new LocalStorageProvider(name) : null;
+    return !LocalStorageProvider.isAvailable() ? null : new LocalStorageProvider(name);
 };
 
 if (LocalStorageProvider.isAvailable()) { (function() {
@@ -267,7 +267,7 @@ LocalStorageProvider.inherit(StorageProvider).extend({
         for (var i=0, len=localStorage.length; i<len; i++) {
             var key = localStorage.key(i);
 
-            if (key.indexOf(this.namespace) == 0)
+            if (key.indexOf(this.namespace) === 0)
                 count++;
         }
 
@@ -281,7 +281,7 @@ LocalStorageProvider.inherit(StorageProvider).extend({
         for (var i=0, len=localStorage.length; i<len; i++) {
             key = localStorage.key(i);
 
-            if (key.indexOf(this.namespace) == 0 && idx--==0)
+            if (key.indexOf(this.namespace) === 0 && idx-- === 0)
             {
                 key = key.slice(this.namespace.length);
 
@@ -314,7 +314,7 @@ LocalStorageProvider.inherit(StorageProvider).extend({
         for (i=0, len=localStorage.length; i<len; i++) {
             var key = localStorage.key(i);
 
-            if (key.indexOf(this.namespace) == 0)
+            if (key.indexOf(this.namespace) === 0)
                 removing.push(key);
         }
 
@@ -340,7 +340,7 @@ UserDataProvider.isAvailable = function () {
 };
 
 UserDataProvider.create = function (name) {
-    return UserDataProvider.isAvailable() ? new UserDataProvider(name) : null;
+    return !UserDataProvider.isAvailable() ? null : new UserDataProvider(name);
 };
 
 if (UserDataProvider.isAvailable()) { (function() {
@@ -458,7 +458,7 @@ exports.tests = function () {
     module("Storage API");
 
     test("basic StorageProvider operation", function () {
-        ok(exports.provider != null, "create");
+        ok(exports.provider !== null, "create");
         ok(exports.provider instanceof StorageProvider, "create");
     });
 

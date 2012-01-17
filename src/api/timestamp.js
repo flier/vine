@@ -2,7 +2,7 @@ define("api/timestamp", ["require", "exports", "api/long", "utils/uuid", "utils/
     function (require, exports, long, uuid) {
 
 var Timestamp = function (steps, ts) {
-    this.parent.constructor.call(this, steps || 0, (ts == undefined) ? new Date().getTime() / 1000 : ts);
+    this.parent.constructor.call(this, steps || 0, (ts === undefined) ? new Date().getTime() / 1000 : ts);
 };
 
 Timestamp.inherit(long.Long).extend({

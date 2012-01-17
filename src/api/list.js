@@ -88,7 +88,7 @@ if(!('isArray' in Array.prototype)) {
 
 if (!('indexOf' in Array.prototype)) {
     Array.prototype.indexOf= function(find, i /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         if (i===undefined) i= 0;
@@ -102,7 +102,7 @@ if (!('indexOf' in Array.prototype)) {
 }
 if (!('lastIndexOf' in Array.prototype)) {
     Array.prototype.lastIndexOf= function(find, i /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         if (i===undefined) i= this.length-1;
@@ -116,7 +116,7 @@ if (!('lastIndexOf' in Array.prototype)) {
 }
 if (!('forEach' in Array.prototype)) {
     Array.prototype.forEach= function(callback, that /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
@@ -140,7 +140,7 @@ if (!('forEach' in Array.prototype)) {
 }
 if (!('map' in Array.prototype)) {
     Array.prototype.map= function(mapper, that /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         var other= new Array(this.length);
@@ -152,7 +152,7 @@ if (!('map' in Array.prototype)) {
 }
 if (!('filter' in Array.prototype)) {
     Array.prototype.filter= function(filter, that /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         var other= [], v;
@@ -164,7 +164,7 @@ if (!('filter' in Array.prototype)) {
 }
 if (!('every' in Array.prototype)) {
     Array.prototype.every= function(tester, that /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         for (var i= 0, n= this.length; i<n; i++)
@@ -175,7 +175,7 @@ if (!('every' in Array.prototype)) {
 }
 if (!('some' in Array.prototype)) {
     Array.prototype.some= function(tester, that /*opt*/) {
-        if (this == null)
+        if (this === null)
             throw new TypeError("`this` is null or not defined");
 
         for (var i= 0, n= this.length; i<n; i++)
