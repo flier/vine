@@ -345,6 +345,8 @@ UserDataProvider.create = function (name) {
 
 if (UserDataProvider.isAvailable()) { (function() {
 
+var ENCODE_MAP = {'.': '.2E', '!': '.21', '~': '.7E', '*': '.2A', '\'': '.27', '(': '.28', ')': '.29', '%': '.'};
+
 UserDataProvider.inherit(StorageProvider).extend({
     init: function (name) {
         this.storename = this.namespace + (name || 'Store');
@@ -358,29 +360,36 @@ UserDataProvider.inherit(StorageProvider).extend({
 
         this.data.load(this.storename);
     },
+    encodeKey: function (key) {
+        // encodeURIComponent leaves - _ . ! ~ * ' ( ) unencoded.
+        return '_' + encodeURIComponent(key).replace(/[.!~*'()%]/g, function(c) { return ENCODE_MAP[c]; });
+    },
+    decodeKey: function (key) {
+        return decodeURIComponent(key.replace(/\./g, '%')).substr(1);
+    },
     length: function () {
         return this.data.XMLDocument.documentElement.attributes.length;
     },
     getKey: function (idx, callback) {
-        var key = this.data.XMLDocument.documentElement.attributes[idx].name;
+        var key = this.decodeKey(this.data.XMLDocument.documentElement.attributes[idx].name);
 
         if (Function.isFunction(callback)) callback.call(this, key);
 
         return key;
     },
     getItem: function (key, callback) {
-        var item = this.data.getAttribute(key);
+        var item = this.data.getAttribute(this.encodeKey(key));
 
         if (Function.isFunction(callback)) callback.call(this, item);
 
         return item;
     },
     removeItem: function (key) {
-        this.data.removeAttribute(key);
+        this.data.removeAttribute(this.encodeKey(key));
         this.data.save(this.storename);
     },
     setItem: function (key, data) {
-        this.data.setAttribute(key, data);
+        this.data.setAttribute(this.encodeKey(key), data);
         this.data.save(this.storename);
     },
     clear: function () {
