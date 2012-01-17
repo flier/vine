@@ -23,6 +23,7 @@ var TESTING_MODULES = [
     "utils/zip",
     "utils/bitarray",
     "utils/avltree",
+    "utils/btree",
     "utils/storage",
     "api/list",
     "api/set",

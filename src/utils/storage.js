@@ -1,6 +1,4 @@
-define("utils/storage", ["require", "exports", "utils/browser", "utils/log",
-                         "utils/string", "utils/oop", "js!modernizr"],
-                        function (require, exports, browser, log) {
+define("utils/storage", ["require", "exports", "utils/browser", "utils/log", "utils/string", "utils/oop", "js!modernizr"], function (require, exports, browser, log) {
 
 var StorageProvider = function () {
     this.namespace = 'vine';
@@ -475,7 +473,7 @@ exports.tests = function () {
     }
 
     if (WebSqlProvider.isAvailable()) {
-        QUnit.asyncTest("async WebSqlProvider operation", function () {
+        asyncTest("async WebSqlProvider operation", function () {
             testAsyncStorageProvider(WebSqlProvider);
 
             setTimeout(function() {
