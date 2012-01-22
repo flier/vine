@@ -26,6 +26,7 @@ var TESTING_MODULES = [
     "utils/btree",
     "utils/storage",
     "utils/chunk",
+    "utils/sync",
     "api/list",
     "api/set",
     "api/dict",
