@@ -14,6 +14,7 @@ var WebSqlProvider = function (name, opts) {
     this.parent.constructor.call(this);
 
     if (name) this.init(name, opts);
+
 };
 
 WebSqlProvider.isAvailable = function () {
@@ -35,7 +36,12 @@ WebSqlProvider.inherit(StorageProvider).extend({
         this.tblname = name;
         this.opts = opts || {};
 
-        if (!WebSqlProvider.db) this.prepareDatabase();
+        this.prepareDatabase();
+    },
+    fireReadyEvent: function () {
+        if (Function.isFunction(this.opts['ready'])) {
+            this.opts['ready'].call(this);
+        }
     },
     getVersion: function () {
         return this.opts['version'] || '1.0';
@@ -49,22 +55,18 @@ WebSqlProvider.inherit(StorageProvider).extend({
     prepareDatabase: function () {
         var provider = this;
 
-        try {
-            WebSqlProvider.db = openDatabase(provider.namespace, provider.getVersion(), provider.getName(), provider.getSize(), function (db) {
-                provider.createDatabase(db);
-            });
-        } catch (e) {
-            this.logger.error("open database [%s] failed, err=%d, %s", this.namespace, e.code, e.message);
+        if (!WebSqlProvider.db) {
+            try {
+                WebSqlProvider.db = openDatabase(provider.namespace, provider.getVersion(), provider.getName(), provider.getSize(), function (db) {
+                    provider.createDatabase(db);
+                });
+            } catch (e) {
+                this.logger.error("open database [%s] failed, err=%d, %s", this.namespace, e.code, e.message);
+            }
         }
 
-        if (WebSqlProvider.db && Function.isFunction(provider.opts['ready'])) {
-            this.logger.info("open database [%s] v%s succeeded", this.namespace, WebSqlProvider.db.version);
-
-            WebSqlProvider.db.transaction(function (trans) {
-                provider.createTables(trans);
-            });
-
-            provider.opts['ready'].call(provider);
+        if (WebSqlProvider.db) {
+            this.createDatabase(WebSqlProvider.db);
         }
     },
     createDatabase: function (db) {
@@ -75,21 +77,35 @@ WebSqlProvider.inherit(StorageProvider).extend({
         }, function (err) {
             provider.logger.error("create database [%s] v%s failed, err=%d, %s", provider.namespace, provider.getVersion(), err.code, err.message);
         }, function () {
-            WebSqlProvider.db = db;
-
-            if (Function.isFunction(provider.opts['ready'])) {
-                provider.opts['ready'].call(provider);
-            }
-
             provider.logger.error("create database [%s] v%s succeeded", provider.namespace, provider.getVersion());
         });
+
+        this.prepareTables();
+    },
+    prepareTables: function () {
+        var provider = this;
+
+        if (WebSqlProvider.db) {
+            this.logger.info("open database [%s] v%s succeeded", this.namespace, WebSqlProvider.db.version);
+
+            WebSqlProvider.db.transaction(function (trans) {
+                provider.createTables(trans);
+            }, function (err) {
+                provider.logger.error("create database [%s] v%s failed, err=%d, %s", provider.namespace, provider.getVersion(), err.code, err.message);
+            }, function () {
+                provider.fireReadyEvent();
+            });
+        }
     },
     createTables: function (trans) {
         this.logger.info("constructing the database...");
 
         var provider = this;
+        var sql = 'CREATE TABLE IF NOT EXISTS %s (key PRIMARY KEY, value)'.sprintf(provider.tblname);
 
-        trans.executeSql('CREATE TABLE IF NOT EXISTS %s (key PRIMARY KEY, value)'.sprintf(provider.tblname), [], function (trans, results) {
+        this.logger.debug("executing SQL: " + sql);
+
+        trans.executeSql(sql, [], function (trans, results) {
             provider.logger.debug("create table [%s] succeeded", provider.tblname);
         }, function (trans, err) {
             provider.logger.error("create table [%s] failed, err=%d, %s", provider.tblname, err.code, err.message);
@@ -148,7 +164,7 @@ WebSqlProvider.inherit(StorageProvider).extend({
                 sql += " ORDER BY " + opts.orderby.join(',');
             }
 
-            provider.logger.debug("executing the SQL: " + sql);
+            provider.logger.debug("executing SQL: " + sql);
 
             trans.executeSql(sql, args, function (trans, results) {
                 provider.logger.debug("execute query succeeded, %d rows", results.rows.length);
@@ -161,7 +177,6 @@ WebSqlProvider.inherit(StorageProvider).extend({
             });
         });
     },
-
     length: function (callback) {
         this.select({
             fields: ["count(*) AS count"]
@@ -402,7 +417,7 @@ UserDataProvider.inherit(StorageProvider).extend({
 
 })(); }
 
-exports.provider = StorageProvider.create('default');
+exports.StorageProvider = StorageProvider;
 
 function testStorageProvider(providerClass) {
     var provider = providerClass.create('test');
@@ -429,6 +444,7 @@ function testStorageProvider(providerClass) {
 function testAsyncStorageProvider(providerClass) {
     providerClass.create('test', {
         ready: function () {
+            this.clear();
             this.length(function (len) { equals(len, 0, "length()"); });
             this.getItem('key', function (value) { equals(value, undefined, "getItem()"); });
             this.setItem('key', 'value');
@@ -441,11 +457,12 @@ function testAsyncStorageProvider(providerClass) {
             this.length(function (len) { equals(len, 1, "length()"); });
             this.clear();
             this.length(function (len) { equals(len, 0, "length()"); });
+            this.setItem('key', 'value', "setItem()");
 
             providerClass.create('test', {
                 ready: function () {
-                    equals(this.length(), 1, "length()");
-                    this.setItem('key', 'value', "setItem()");
+                    this.length(function (len) { equals(len, 1, "length()"); });
+                    this.getItem('key', function (value) { equals(value, 'value', "getItem()"); });
                 }
             });
         }
@@ -456,8 +473,10 @@ exports.tests = function () {
     module("Storage API");
 
     test("basic StorageProvider operation", function () {
-        ok(exports.provider !== null, "create");
-        ok(exports.provider instanceof StorageProvider, "create");
+        var provider = StorageProvider.create('test');
+
+        ok(provider !== null, "create");
+        ok(provider instanceof StorageProvider, "create");
     });
 
     if (LocalStorageProvider.isAvailable()) {

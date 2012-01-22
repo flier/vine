@@ -102,7 +102,7 @@ ChunkManager.extend({
     }
 });
 
-var chunks = new ChunkManager(storage.provider);
+var chunks = new ChunkManager(storage.StorageProvider.create('chunks'));
 
 blob.Binary.extend({
     free: function () {
