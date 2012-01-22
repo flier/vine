@@ -353,19 +353,44 @@ Binary.extend({
     }
 });
 
-if (typeof Uint8Array == "function") {
+(function () {
+    var ArrayBuffer = function (len) {
+        this.buffer = new Array((len + 1) >> 1).join('\0');
+        this.byteLength = len;
+    };
+
+    var ArrayBufferView = function (buf, off, len) {
+        this.buffer = buf;
+        this.byteOffset = off || 0;
+        this.byteLength = len || (buf && buf.byteLength) || 0;
+    };
+
+    var Uint8Array = function (buf, off, len) {
+        this.parent.constructor.call(this, buf, off, len);
+    };
+
+    Uint8Array.inherit(ArrayBufferView);
+
     Binary.getBuffer = function (len) {
         return new Binary(new ArrayBuffer(len), 0, len);
     };
 
     Binary.extend({
+        getByteView: function (buf, off, len) {
+            var buf = new Uint8Array(buf, off, len);
+
+            buf.bin = this;
+
+            return buf;
+        },
         get: function (idx) {
             if (idx == undefined) {
                 idx = this.offset++;
             } else {
                 idx += this.offset;
             }
-            return this.buffer[idx];
+
+            return ((this.buffer.buffer[idx>>1] >> ((idx % 2) * 8))) & 255;
         },
         put: function (idx, value) {
             if (value == undefined) {
@@ -374,68 +399,10 @@ if (typeof Uint8Array == "function") {
             } else {
                 idx += this.offset;
             }
-            this.buffer[idx] = value;
-        },
-        getByteView: function (buf, off, len) {
-            var buf = new Uint8Array(buf, off, len);
-
-            buf.bin = this;
-
-            return buf;
+            this.buffer.buffer[idx>>1] = (this.buffer.buffer[idx>>1] & (255 << ((1 - idx % 2) * 8))) | (value << ((idx % 2) * 8));
         }
     });
-} else {
-    (function () {
-        var ArrayBuffer = function (len) {
-            this.buffer = new Array((len + 1) >> 1).join('\0');
-            this.byteLength = len;
-        };
-
-        var ArrayBufferView = function (buf, off, len) {
-            this.buffer = buf;
-            this.byteOffset = off || 0;
-            this.byteLength = len || (buf && buf.byteLength) || 0;
-        };
-
-        var Uint8Array = function (buf, off, len) {
-            this.parent.constructor.call(this, buf, off, len);
-        };
-
-        Uint8Array.inherit(ArrayBufferView);
-
-        Binary.getBuffer = function (len) {
-            return new Binary(new ArrayBuffer(len), 0, len);
-        };
-
-        Binary.extend({
-            getByteView: function (buf, off, len) {
-                var buf = new Uint8Array(buf, off, len);
-
-                buf.bin = this;
-
-                return buf;
-            },
-            get: function (idx) {
-                if (idx == undefined) {
-                    idx = this.offset++;
-                } else {
-                    idx += this.offset;
-                }
-
-                return ((this.buffer.buffer[idx>>1] >> ((idx % 2) * 8))) & 255;
-            },
-            put: function (idx, value) {
-                if (value == undefined) {
-                    value = idx;
-                    idx = this.offset++;
-                } else {
-                    idx += this.offset;
-                }
-                this.buffer.buffer[idx>>1] = (this.buffer.buffer[idx>>1] & (255 << ((1 - idx % 2) * 8))) | (value << ((idx % 2) * 8));
-            }
-        });
-    })();
-}
+})();
 
 exports.Binary = Binary;
 

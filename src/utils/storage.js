@@ -402,7 +402,7 @@ UserDataProvider.inherit(StorageProvider).extend({
 
 })(); }
 
-exports.provider = StorageProvider.create();
+exports.provider = StorageProvider.create('default');
 
 function testStorageProvider(providerClass) {
     var provider = providerClass.create('test');

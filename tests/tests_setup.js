@@ -25,6 +25,7 @@ var TESTING_MODULES = [
     "utils/avltree",
     "utils/btree",
     "utils/storage",
+    "utils/chunk",
     "api/list",
     "api/set",
     "api/dict",
