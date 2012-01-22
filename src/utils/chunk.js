@@ -49,15 +49,20 @@ ChunkManager.extend({
     getBlockSize: function (idx) {
         return 1 << (MIN_BLOCK_SHIFT + idx);
     },
+    allocChunk: function (len) {
+        var chunk = new Chunk(len);
+
+        this.chunks.push(chunk);
+
+        return chunk;
+    },
     allocBlock: function (idx) {
         var chunk;
 
         if (this.freeChunks.length > 0) {
             chunk = this.freeChunks.pop();
         } else {
-            chunk = new Chunk();
-
-            this.chunks.push(chunk);
+            chunk = this.allocChunk(CHUNK_SIZE);
         }
 
         var size = this.getBlockSize(idx);
@@ -72,7 +77,11 @@ ChunkManager.extend({
         var idx = this.getBlockIndex(len);
         var block;
 
-        if (this.freeBlocks[idx].length > 0) {
+        if (idx < 0) {
+            var chunk = this.allocChunk(len);
+            block = new blob.Binary(chunk.data);
+            block.chunk = chunk;
+        } else if (this.freeBlocks[idx].length > 0) {
             block = this.freeBlocks.pop();
         } else {
             block = this.allocBlock(idx);
@@ -85,11 +94,21 @@ ChunkManager.extend({
     free: function (block) {
         var idx = this.getBlockIndex(block.length);
 
-        this.freeBlocks[idx].push(block);
+        if (idx < 0) {
+            this.freeChunks.push(block.chunk);
+        } else {
+            this.freeBlocks[idx].push(block);
+        }
     }
 });
 
 var chunks = new ChunkManager(storage.provider);
+
+blob.Binary.extend({
+    free: function () {
+        chunks.free(this);
+    }
+});
 
 exports.chunks = chunks;
 
@@ -103,7 +122,17 @@ exports.tests = function () {
 
         ok(buf, "alloc");
         equals(buf.length, 7, "length");
+        equals(chunks.freeBlocks[0].length, 255);
         chunks.free(buf);
+        equals(chunks.freeBlocks[0].length, 256, "free");
+
+        buf = chunks.alloc(CHUNK_SIZE);
+        equals(buf.length, CHUNK_SIZE, "length");
+        equals(chunks.chunks.length, 2, "alloc big block");
+
+        equals(chunks.freeChunks.length, 0);
+        buf.free();
+        equals(chunks.freeChunks.length, 1, "free big block");
     });
 };
 
