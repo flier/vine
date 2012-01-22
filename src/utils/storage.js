@@ -77,7 +77,7 @@ WebSqlProvider.inherit(StorageProvider).extend({
         }, function (err) {
             provider.logger.error("create database [%s] v%s failed, err=%d, %s", provider.namespace, provider.getVersion(), err.code, err.message);
         }, function () {
-            provider.logger.error("create database [%s] v%s succeeded", provider.namespace, provider.getVersion());
+            provider.logger.info("create database [%s] v%s succeeded", provider.namespace, provider.getVersion());
         });
 
         this.prepareTables();
